@@ -2075,65 +2075,29 @@ inline void sapp_run(const sapp_desc& desc) { return sapp_run(&desc); }
 #define _SAPP_PIXELFORMAT_DEPTH (43)
 #define _SAPP_PIXELFORMAT_DEPTH_STENCIL (44)
 
-// check if the config defines are alright
-#if defined(__APPLE__)
-    // see https://clang.llvm.org/docs/LanguageExtensions.html#automatic-reference-counting
-    #if !defined(__cplusplus)
-        #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
-            #error "sokol_app.h requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
-        #endif
+// Apple platforms only for Metal-only build
+#if !defined(__cplusplus)
+    #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
+        #error "sokol_app.h requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
     #endif
-    #define _SAPP_APPLE (1)
-    #include <TargetConditionals.h>
-    #if defined(TARGET_OS_IPHONE) && !TARGET_OS_IPHONE
-        /* MacOS */
-        #define _SAPP_MACOS (1)
-        #if !defined(SOKOL_METAL)
-        #error("sokol_app.h: unknown 3D API selected for MacOS, must be SOKOL_METAL")
-        #endif
-    #else
-        /* iOS or iOS Simulator */
-        #define _SAPP_IOS (1)
-        #if !defined(SOKOL_METAL)
-        #error("sokol_app.h: unknown 3D API selected for iOS, must be SOKOL_METAL")
-        #endif
-    #endif
-#elif defined(__EMSCRIPTEN__)
-    /* emscripten (asm.js or wasm) */
-    #define _SAPP_EMSCRIPTEN (1)
-    #if !defined(SOKOL_DUMMY_BACKEND)
-    #error("sokol_app.h: emscripten platform only supports SOKOL_DUMMY_BACKEND in this Metal-only build")
-    #endif
-#elif defined(_WIN32)
-    /* Windows (D3D11 or GL) */
-    #define _SAPP_WIN32 (1)
-    #if !defined(SOKOL_DUMMY_BACKEND) && !defined(SOKOL_NOAPI)
-    #error("sokol_app.h: Win32 platform only supports SOKOL_DUMMY_BACKEND or SOKOL_NOAPI in this Metal-only build")
-    #endif
-#elif defined(__ANDROID__)
-    /* Android */
-    #define _SAPP_ANDROID (1)
-    #if !defined(SOKOL_DUMMY_BACKEND)
-    #error("sokol_app.h: Android platform only supports SOKOL_DUMMY_BACKEND in this Metal-only build")
-    #endif
-    #if defined(SOKOL_NO_ENTRY)
-    #error("sokol_app.h: SOKOL_NO_ENTRY is not supported on Android")
-    #endif
-#elif defined(__linux__) || defined(__unix__)
-    /* Linux */
-    #define _SAPP_LINUX (1)
-    #if defined(SOKOL_DUMMY_BACKEND)
-        // Dummy backend needs no platform headers
-    #else
-        #error("sokol_app.h: Linux platform only supports SOKOL_DUMMY_BACKEND in this Metal-only build")
+#endif
+#define _SAPP_APPLE (1)
+#include <TargetConditionals.h>
+#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+    /* iOS or iOS Simulator */
+    #define _SAPP_IOS (1)
+    #if !defined(SOKOL_METAL)
+    #error("sokol_app.h: iOS requires SOKOL_METAL")
     #endif
 #else
-#error "sokol_app.h: Unknown platform"
+    /* macOS */
+    #define _SAPP_MACOS (1)
+    #if !defined(SOKOL_METAL)
+    #error("sokol_app.h: macOS requires SOKOL_METAL")
+    #endif
 #endif
 
-#if defined(SOKOL_GLCORE) || defined(SOKOL_GLES3)
-    #define _SAPP_ANY_GL (1)
-#endif
+
 
 #ifndef SOKOL_API_IMPL
     #define SOKOL_API_IMPL

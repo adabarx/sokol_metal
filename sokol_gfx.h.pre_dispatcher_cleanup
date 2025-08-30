@@ -9360,11 +9360,22 @@ static inline sg_resource_state _sg_create_buffer(_sg_buffer_t* buf, const sg_bu
 }
 
 static inline void _sg_discard_buffer(_sg_buffer_t* buf) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_discard_buffer(buf);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_discard_buffer(buf);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline sg_resource_state _sg_create_image(_sg_image_t* img, const sg_image_desc* desc) {
-    return _sg_mtl_create_image(img, desc);
+    #if defined(SOKOL_METAL)
+    return _sg_mtl_create_image(img, desc);    #elif defined(SOKOL_DUMMY_BACKEND)
+    return _sg_dummy_create_image(img, desc);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_discard_image(_sg_image_t* img) {
