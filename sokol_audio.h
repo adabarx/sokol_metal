@@ -676,17 +676,25 @@ inline void saudio_setup(const saudio_desc& desc) { return saudio_setup(&desc); 
         #define _SAUDIO_MACOS (1)
     #endif
 #elif defined(__EMSCRIPTEN__)
-    #define _SAUDIO_EMSCRIPTEN (1)
+    // Use dummy backend on non-Apple platforms in this Metal-only build
+    #ifndef SOKOL_DUMMY_BACKEND
+    #define SOKOL_DUMMY_BACKEND
+    #endif
 #elif defined(_WIN32)
-    #define _SAUDIO_WINDOWS (1)
-    #include <winapifamily.h>
-    #if (defined(WINAPI_FAMILY_PARTITION) && !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP))
-        #error "sokol_audio.h no longer supports UWP"
+    // Use dummy backend on non-Apple platforms in this Metal-only build  
+    #ifndef SOKOL_DUMMY_BACKEND
+    #define SOKOL_DUMMY_BACKEND
     #endif
 #elif defined(__ANDROID__)
-    #define _SAUDIO_ANDROID (1)
+    // Use dummy backend on non-Apple platforms in this Metal-only build
+    #ifndef SOKOL_DUMMY_BACKEND
+    #define SOKOL_DUMMY_BACKEND
+    #endif
 #elif defined(__linux__) || defined(__unix__)
-    #define _SAUDIO_LINUX (1)
+    // Use dummy backend on non-Apple platforms in this Metal-only build
+    #ifndef SOKOL_DUMMY_BACKEND
+    #define SOKOL_DUMMY_BACKEND
+    #endif
 #else
 #error "sokol_audio.h: Unknown platform"
 #endif

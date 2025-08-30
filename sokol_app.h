@@ -2088,33 +2088,33 @@ inline void sapp_run(const sapp_desc& desc) { return sapp_run(&desc); }
     #if defined(TARGET_OS_IPHONE) && !TARGET_OS_IPHONE
         /* MacOS */
         #define _SAPP_MACOS (1)
-        #if !defined(SOKOL_METAL) && !defined(SOKOL_GLCORE)
-        #error("sokol_app.h: unknown 3D API selected for MacOS, must be SOKOL_METAL or SOKOL_GLCORE")
+        #if !defined(SOKOL_METAL)
+        #error("sokol_app.h: unknown 3D API selected for MacOS, must be SOKOL_METAL")
         #endif
     #else
         /* iOS or iOS Simulator */
         #define _SAPP_IOS (1)
-        #if !defined(SOKOL_METAL) && !defined(SOKOL_GLES3)
-        #error("sokol_app.h: unknown 3D API selected for iOS, must be SOKOL_METAL or SOKOL_GLES3")
+        #if !defined(SOKOL_METAL)
+        #error("sokol_app.h: unknown 3D API selected for iOS, must be SOKOL_METAL")
         #endif
     #endif
 #elif defined(__EMSCRIPTEN__)
     /* emscripten (asm.js or wasm) */
     #define _SAPP_EMSCRIPTEN (1)
-    #if !defined(SOKOL_GLES3) && !defined(SOKOL_WGPU)
-    #error("sokol_app.h: unknown 3D API selected for emscripten, must be SOKOL_GLES3 or SOKOL_WGPU")
+    #if !defined(SOKOL_DUMMY_BACKEND)
+    #error("sokol_app.h: emscripten platform only supports SOKOL_DUMMY_BACKEND in this Metal-only build")
     #endif
 #elif defined(_WIN32)
     /* Windows (D3D11 or GL) */
     #define _SAPP_WIN32 (1)
-    #if !defined(SOKOL_D3D11) && !defined(SOKOL_GLCORE) && !defined(SOKOL_NOAPI)
-    #error("sokol_app.h: unknown 3D API selected for Win32, must be SOKOL_D3D11, SOKOL_GLCORE or SOKOL_NOAPI")
+    #if !defined(SOKOL_DUMMY_BACKEND) && !defined(SOKOL_NOAPI)
+    #error("sokol_app.h: Win32 platform only supports SOKOL_DUMMY_BACKEND or SOKOL_NOAPI in this Metal-only build")
     #endif
 #elif defined(__ANDROID__)
     /* Android */
     #define _SAPP_ANDROID (1)
-    #if !defined(SOKOL_GLES3)
-    #error("sokol_app.h: unknown 3D API selected for Android, must be SOKOL_GLES3")
+    #if !defined(SOKOL_DUMMY_BACKEND)
+    #error("sokol_app.h: Android platform only supports SOKOL_DUMMY_BACKEND in this Metal-only build")
     #endif
     #if defined(SOKOL_NO_ENTRY)
     #error("sokol_app.h: SOKOL_NO_ENTRY is not supported on Android")
@@ -2122,17 +2122,10 @@ inline void sapp_run(const sapp_desc& desc) { return sapp_run(&desc); }
 #elif defined(__linux__) || defined(__unix__)
     /* Linux */
     #define _SAPP_LINUX (1)
-    #if defined(SOKOL_GLCORE)
-        #if !defined(SOKOL_FORCE_EGL)
-            #define _SAPP_GLX (1)
-        #endif
-        #define GL_GLEXT_PROTOTYPES
-        #include <GL/gl.h>
-    #elif defined(SOKOL_GLES3)
-        #include <GLES3/gl3.h>
-        #include <GLES3/gl3ext.h>
+    #if defined(SOKOL_DUMMY_BACKEND)
+        // Dummy backend needs no platform headers
     #else
-        #error("sokol_app.h: unknown 3D API selected for Linux, must be SOKOL_GLCORE, SOKOL_GLES3")
+        #error("sokol_app.h: Linux platform only supports SOKOL_DUMMY_BACKEND in this Metal-only build")
     #endif
 #else
 #error "sokol_app.h: Unknown platform"
