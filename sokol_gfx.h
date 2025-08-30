@@ -9550,8 +9550,9 @@ _SOKOL_PRIVATE void _sg_mtl_pop_debug_group(void) {
 // >>webgpu
 // >>generic backend
 static inline void _sg_setup_backend(const sg_desc* desc) {
-    #elif defined(SOKOL_METAL)
-    _sg_mtl_setup_backend(desc);    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    _sg_mtl_setup_backend(desc);
+    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_setup_backend(desc);
     #else
     #error("INVALID BACKEND");
@@ -9559,8 +9560,9 @@ static inline void _sg_setup_backend(const sg_desc* desc) {
 }
 
 static inline void _sg_discard_backend(void) {
-    #elif defined(SOKOL_METAL)
-    _sg_mtl_discard_backend();    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    _sg_mtl_discard_backend();
+    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_discard_backend();
     #else
     #error("INVALID BACKEND");
@@ -9568,8 +9570,9 @@ static inline void _sg_discard_backend(void) {
 }
 
 static inline void _sg_reset_state_cache(void) {
-    #elif defined(SOKOL_METAL)
-    _sg_mtl_reset_state_cache();    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    _sg_mtl_reset_state_cache();
+    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_reset_state_cache();
     #else
     #error("INVALID BACKEND");
@@ -9577,8 +9580,9 @@ static inline void _sg_reset_state_cache(void) {
 }
 
 static inline sg_resource_state _sg_create_buffer(_sg_buffer_t* buf, const sg_buffer_desc* desc) {
-    #elif defined(SOKOL_METAL)
-    return _sg_mtl_create_buffer(buf, desc);    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    return _sg_mtl_create_buffer(buf, desc);
+    #elif defined(SOKOL_DUMMY_BACKEND)
     return _sg_dummy_create_buffer(buf, desc);
     #else
     #error("INVALID BACKEND");
@@ -9586,8 +9590,9 @@ static inline sg_resource_state _sg_create_buffer(_sg_buffer_t* buf, const sg_bu
 }
 
 static inline void _sg_discard_buffer(_sg_buffer_t* buf) {
-    #elif defined(SOKOL_METAL)
-    _sg_mtl_discard_buffer(buf);    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    _sg_mtl_discard_buffer(buf);
+    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_discard_buffer(buf);
     #else
     #error("INVALID BACKEND");
@@ -9595,7 +9600,7 @@ static inline void _sg_discard_buffer(_sg_buffer_t* buf) {
 }
 
 static inline sg_resource_state _sg_create_image(_sg_image_t* img, const sg_image_desc* desc) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     return _sg_mtl_create_image(img, desc);    #elif defined(SOKOL_DUMMY_BACKEND)
     return _sg_dummy_create_image(img, desc);
     #else
@@ -9604,8 +9609,9 @@ static inline sg_resource_state _sg_create_image(_sg_image_t* img, const sg_imag
 }
 
 static inline void _sg_discard_image(_sg_image_t* img) {
-    #elif defined(SOKOL_METAL)
-    _sg_mtl_discard_image(img);    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    _sg_mtl_discard_image(img);
+    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_discard_image(img);
     #else
     #error("INVALID BACKEND");
@@ -9613,7 +9619,7 @@ static inline void _sg_discard_image(_sg_image_t* img) {
 }
 
 static inline sg_resource_state _sg_create_sampler(_sg_sampler_t* smp, const sg_sampler_desc* desc) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     return _sg_mtl_create_sampler(smp, desc);    #elif defined(SOKOL_DUMMY_BACKEND)
     return _sg_dummy_create_sampler(smp, desc);
     #else
@@ -9622,8 +9628,9 @@ static inline sg_resource_state _sg_create_sampler(_sg_sampler_t* smp, const sg_
 }
 
 static inline void _sg_discard_sampler(_sg_sampler_t* smp) {
-    #elif defined(SOKOL_METAL)
-    _sg_mtl_discard_sampler(smp);    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    _sg_mtl_discard_sampler(smp);
+    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_discard_sampler(smp);
     #else
     #error("INVALID BACKEND");
@@ -9631,7 +9638,7 @@ static inline void _sg_discard_sampler(_sg_sampler_t* smp) {
 }
 
 static inline sg_resource_state _sg_create_shader(_sg_shader_t* shd, const sg_shader_desc* desc) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     return _sg_mtl_create_shader(shd, desc);    #elif defined(SOKOL_DUMMY_BACKEND)
     return _sg_dummy_create_shader(shd, desc);
     #else
@@ -9640,8 +9647,9 @@ static inline sg_resource_state _sg_create_shader(_sg_shader_t* shd, const sg_sh
 }
 
 static inline void _sg_discard_shader(_sg_shader_t* shd) {
-    #elif defined(SOKOL_METAL)
-    _sg_mtl_discard_shader(shd);    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    _sg_mtl_discard_shader(shd);
+    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_discard_shader(shd);
     #else
     #error("INVALID BACKEND");
@@ -9649,7 +9657,7 @@ static inline void _sg_discard_shader(_sg_shader_t* shd) {
 }
 
 static inline sg_resource_state _sg_create_pipeline(_sg_pipeline_t* pip, const sg_pipeline_desc* desc) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     return _sg_mtl_create_pipeline(pip, desc);    #elif defined(SOKOL_DUMMY_BACKEND)
     return _sg_dummy_create_pipeline(pip, desc);
     #else
@@ -9658,8 +9666,9 @@ static inline sg_resource_state _sg_create_pipeline(_sg_pipeline_t* pip, const s
 }
 
 static inline void _sg_discard_pipeline(_sg_pipeline_t* pip) {
-    #elif defined(SOKOL_METAL)
-    _sg_mtl_discard_pipeline(pip);    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    _sg_mtl_discard_pipeline(pip);
+    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_discard_pipeline(pip);
     #else
     #error("INVALID BACKEND");
@@ -9667,7 +9676,7 @@ static inline void _sg_discard_pipeline(_sg_pipeline_t* pip) {
 }
 
 static inline sg_resource_state _sg_create_view(_sg_view_t* view, const sg_view_desc* desc) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     return _sg_mtl_create_view(view, desc);    #elif defined(SOKOL_DUMMY_BACKEND)
     return _sg_dummy_create_view(view, desc);
     #else
@@ -9676,8 +9685,9 @@ static inline sg_resource_state _sg_create_view(_sg_view_t* view, const sg_view_
 }
 
 static inline void _sg_discard_view(_sg_view_t* view) {
-    #elif defined(SOKOL_METAL)
-    _sg_mtl_discard_view(view);    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    _sg_mtl_discard_view(view);
+    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_discard_view(view);
     #else
     #error("INVALID BACKEND");
@@ -9685,7 +9695,7 @@ static inline void _sg_discard_view(_sg_view_t* view) {
 }
 
 static inline void _sg_begin_pass(const sg_pass* pass, const _sg_attachments_ptrs_t* atts) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     _sg_mtl_begin_pass(pass, atts);    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_begin_pass(pass, atts);
     #else
@@ -9694,8 +9704,9 @@ static inline void _sg_begin_pass(const sg_pass* pass, const _sg_attachments_ptr
 }
 
 static inline void _sg_end_pass(const _sg_attachments_ptrs_t* atts) {
-    #elif defined(SOKOL_METAL)
-    _sg_mtl_end_pass(atts);    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    _sg_mtl_end_pass(atts);
+    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_end_pass(atts);
     #else
     #error("INVALID BACKEND");
@@ -9703,7 +9714,7 @@ static inline void _sg_end_pass(const _sg_attachments_ptrs_t* atts) {
 }
 
 static inline void _sg_apply_viewport(int x, int y, int w, int h, bool origin_top_left) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     _sg_mtl_apply_viewport(x, y, w, h, origin_top_left);    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_apply_viewport(x, y, w, h, origin_top_left);
     #else
@@ -9712,7 +9723,7 @@ static inline void _sg_apply_viewport(int x, int y, int w, int h, bool origin_to
 }
 
 static inline void _sg_apply_scissor_rect(int x, int y, int w, int h, bool origin_top_left) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     _sg_mtl_apply_scissor_rect(x, y, w, h, origin_top_left);    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_apply_scissor_rect(x, y, w, h, origin_top_left);
     #else
@@ -9721,8 +9732,9 @@ static inline void _sg_apply_scissor_rect(int x, int y, int w, int h, bool origi
 }
 
 static inline void _sg_apply_pipeline(_sg_pipeline_t* pip) {
-    #elif defined(SOKOL_METAL)
-    _sg_mtl_apply_pipeline(pip);    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    _sg_mtl_apply_pipeline(pip);
+    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_apply_pipeline(pip);
     #else
     #error("INVALID BACKEND");
@@ -9730,8 +9742,9 @@ static inline void _sg_apply_pipeline(_sg_pipeline_t* pip) {
 }
 
 static inline bool _sg_apply_bindings(_sg_bindings_ptrs_t* bnd) {
-    #elif defined(SOKOL_METAL)
-    return _sg_mtl_apply_bindings(bnd);    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    return _sg_mtl_apply_bindings(bnd);
+    #elif defined(SOKOL_DUMMY_BACKEND)
     return _sg_dummy_apply_bindings(bnd);
     #else
     #error("INVALID BACKEND");
@@ -9739,7 +9752,7 @@ static inline bool _sg_apply_bindings(_sg_bindings_ptrs_t* bnd) {
 }
 
 static inline void _sg_apply_uniforms(int ub_slot, const sg_range* data) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     _sg_mtl_apply_uniforms(ub_slot, data);    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_apply_uniforms(ub_slot, data);
     #else
@@ -9748,7 +9761,7 @@ static inline void _sg_apply_uniforms(int ub_slot, const sg_range* data) {
 }
 
 static inline void _sg_draw(int base_element, int num_elements, int num_instances) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     _sg_mtl_draw(base_element, num_elements, num_instances);    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_draw(base_element, num_elements, num_instances);
     #else
@@ -9757,7 +9770,7 @@ static inline void _sg_draw(int base_element, int num_elements, int num_instance
 }
 
 static inline void _sg_dispatch(int num_groups_x, int num_groups_y, int num_groups_z) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     _sg_mtl_dispatch(num_groups_x, num_groups_y, num_groups_z);    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_dispatch(num_groups_x, num_groups_y, num_groups_z);
     #else
@@ -9766,8 +9779,9 @@ static inline void _sg_dispatch(int num_groups_x, int num_groups_y, int num_grou
 }
 
 static inline void _sg_commit(void) {
-    #elif defined(SOKOL_METAL)
-    _sg_mtl_commit();    #elif defined(SOKOL_DUMMY_BACKEND)
+    #if defined(SOKOL_METAL)
+    _sg_mtl_commit();
+    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_commit();
     #else
     #error("INVALID BACKEND");
@@ -9775,7 +9789,7 @@ static inline void _sg_commit(void) {
 }
 
 static inline void _sg_update_buffer(_sg_buffer_t* buf, const sg_range* data) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     _sg_mtl_update_buffer(buf, data);    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_update_buffer(buf, data);
     #else
@@ -9784,7 +9798,7 @@ static inline void _sg_update_buffer(_sg_buffer_t* buf, const sg_range* data) {
 }
 
 static inline void _sg_append_buffer(_sg_buffer_t* buf, const sg_range* data, bool new_frame) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     _sg_mtl_append_buffer(buf, data, new_frame);    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_append_buffer(buf, data, new_frame);
     #else
@@ -9793,7 +9807,7 @@ static inline void _sg_append_buffer(_sg_buffer_t* buf, const sg_range* data, bo
 }
 
 static inline void _sg_update_image(_sg_image_t* img, const sg_image_data* data) {
-    #elif defined(SOKOL_METAL)
+    #if defined(SOKOL_METAL)
     _sg_mtl_update_image(img, data);    #elif defined(SOKOL_DUMMY_BACKEND)
     _sg_dummy_update_image(img, data);
     #else
