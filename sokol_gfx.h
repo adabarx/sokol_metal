@@ -5207,8 +5207,8 @@ inline int sg_append_buffer(sg_buffer buf_id, const sg_range& data) { return sg_
 #ifdef SOKOL_GFX_IMPL
 #define SOKOL_GFX_IMPL_INCLUDED (1)
 
-#if !(defined(SOKOL_GLCORE)||defined(SOKOL_GLES3)||defined(SOKOL_D3D11)||defined(SOKOL_METAL)||defined(SOKOL_WGPU)||defined(SOKOL_DUMMY_BACKEND))
-#error "Please select a backend with SOKOL_GLCORE, SOKOL_GLES3, SOKOL_D3D11, SOKOL_METAL, SOKOL_WGPU or SOKOL_DUMMY_BACKEND"
+#if !(defined(SOKOL_METAL)||defined(SOKOL_DUMMY_BACKEND))
+#error "Please select a backend with SOKOL_METAL or SOKOL_DUMMY_BACKEND"
 #endif
 #if defined(SOKOL_MALLOC) || defined(SOKOL_CALLOC) || defined(SOKOL_FREE)
 #error "SOKOL_MALLOC/CALLOC/FREE macros are no longer supported, please use sg_desc.allocator to override memory allocation functions"
@@ -5283,30 +5283,7 @@ inline int sg_append_buffer(sg_buffer buf_id, const sg_range& data) { return sg_
 #pragma warning(disable:4055)   // 'type cast': from data pointer
 #endif
 
-#if defined(SOKOL_D3D11)
-    #if defined(__GNUC__)
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic ignored "-Wunknown-pragmas"
-    #endif
-    #ifndef D3D11_NO_HELPERS
-    #define D3D11_NO_HELPERS
-    #endif
-    #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
-    #endif
-    #ifndef NOMINMAX
-    #define NOMINMAX
-    #endif
-    #include <d3d11.h>
-    #include <d3dcompiler.h>
-    #pragma comment (lib, "kernel32")
-    #pragma comment (lib, "user32")
-    #pragma comment (lib, "dxgi")
-    #pragma comment (lib, "d3d11")
-    #if defined(__GNUC__)
-        #pragma GCC diagnostic pop
-    #endif
-#elif defined(SOKOL_METAL)
+#if defined(SOKOL_METAL)
     // see https://clang.llvm.org/docs/LanguageExtensions.html#automatic-reference-counting
     #if !defined(__cplusplus)
         #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
@@ -5325,83 +5302,11 @@ inline int sg_append_buffer(sg_buffer buf_id, const sg_range& data) { return sg_
     #endif
     #import <Metal/Metal.h>
     #import <QuartzCore/CoreAnimation.h> // needed for CAMetalDrawable
-#elif defined(SOKOL_WGPU)
-    #include <webgpu/webgpu.h>
-    #if defined(__EMSCRIPTEN__)
-        #include <emscripten/emscripten.h>
-    #endif
-#elif defined(SOKOL_GLCORE) || defined(SOKOL_GLES3)
-    #define _SOKOL_ANY_GL (1)
+#endif
 
-    // include platform specific GL headers (or on Win32: use an embedded GL loader)
-    #if !defined(SOKOL_EXTERNAL_GL_LOADER)
-        #if defined(_WIN32)
-            #if defined(SOKOL_GLCORE)
-                #define _SOKOL_USE_WIN32_GL_LOADER (1)
-                #ifndef WIN32_LEAN_AND_MEAN
-                #define WIN32_LEAN_AND_MEAN
-                #endif
-                #ifndef NOMINMAX
-                #define NOMINMAX
-                #endif
-                #include <windows.h>
-                #pragma comment (lib, "kernel32")   // GetProcAddress()
-                #define _SOKOL_GL_HAS_COMPUTE (1)
-                #define _SOKOL_GL_HAS_TEXSTORAGE (1)
-                #define _SOKOL_GL_HAS_TEXVIEWS (1)
-            #endif
-        #elif defined(__APPLE__)
-            #include <TargetConditionals.h>
-            #ifndef GL_SILENCE_DEPRECATION
-                #define GL_SILENCE_DEPRECATION
-            #endif
-            #if defined(TARGET_OS_IPHONE) && !TARGET_OS_IPHONE
-                #include <OpenGL/gl3.h>
-            #else
-                #include <OpenGLES/ES3/gl.h>
-                #include <OpenGLES/ES3/glext.h>
-                #define _SOKOL_GL_HAS_TEXSTORAGE (1)
-            #endif
-        #elif defined(__EMSCRIPTEN__)
-            #if defined(SOKOL_GLES3)
-                #include <GLES3/gl3.h>
-                #define _SOKOL_GL_HAS_TEXSTORAGE (1)
-            #endif
-        #elif defined(__ANDROID__)
-            #include <GLES3/gl31.h>
-            #define _SOKOL_GL_HAS_COMPUTE (1)
-            #define _SOKOL_GL_HAS_TEXSTORAGE (1)
-        #elif defined(__linux__) || defined(__unix__)
-            #if defined(SOKOL_GLCORE)
-                #define GL_GLEXT_PROTOTYPES
-                #include <GL/gl.h>
-                #define _SOKOL_GL_HAS_TEXVIEWS (1)
-            #else
-                #include <GLES3/gl31.h>
-                #include <GLES3/gl3ext.h>
-            #endif
-            #define _SOKOL_GL_HAS_COMPUTE (1)
-            #define _SOKOL_GL_HAS_TEXSTORAGE (1)
-        #endif
-    #endif
+//
 
-    // optional GL loader definitions (only on Win32)
-    #if defined(_SOKOL_USE_WIN32_GL_LOADER)
-        #define __gl_h_ 1
-        #define __gl32_h_ 1
-        #define __gl31_h_ 1
-        #define __GL_H__ 1
-        #define __glext_h_ 1
-        #define __GLEXT_H_ 1
-        #define __gltypes_h_ 1
-        #define __glcorearb_h_ 1
-        #define __gl_glcorearb_h_ 1
-        #define GL_APIENTRY APIENTRY
-
-        typedef unsigned int  GLenum;
-        typedef unsigned int  GLuint;
-        typedef int  GLsizei;
-        typedef char  GLchar;
+// ███████ ████████ ██████  ██    ██  ██████ ████████ ███████
         typedef ptrdiff_t  GLintptr;
         typedef ptrdiff_t  GLsizeiptr;
         typedef double  GLclampd;
