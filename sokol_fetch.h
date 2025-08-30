@@ -1175,32 +1175,12 @@ inline sfetch_handle_t sfetch_send(const sfetch_request_t& request) { return sfe
     #define _SOKOL_UNUSED(x) (void)(x)
 #endif
 
-#if defined(__EMSCRIPTEN__)
-    #include <emscripten/emscripten.h>
-    #define _SFETCH_PLATFORM_EMSCRIPTEN (1)
-    #define _SFETCH_PLATFORM_WINDOWS (0)
-    #define _SFETCH_PLATFORM_POSIX (0)
-    #define _SFETCH_HAS_THREADS (0)
-#elif defined(_WIN32)
-    #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
-    #endif
-    #ifndef NOMINMAX
-    #define NOMINMAX
-    #endif
-    #include <windows.h>
-    #define _SFETCH_PLATFORM_WINDOWS (1)
-    #define _SFETCH_PLATFORM_EMSCRIPTEN (0)
-    #define _SFETCH_PLATFORM_POSIX (0)
-    #define _SFETCH_HAS_THREADS (1)
-#else
-    #include <pthread.h>
-    #include <stdio.h>  /* fopen, fread, fseek, fclose */
-    #define _SFETCH_PLATFORM_POSIX (1)
-    #define _SFETCH_PLATFORM_EMSCRIPTEN (0)
-    #define _SFETCH_PLATFORM_WINDOWS (0)
-    #define _SFETCH_HAS_THREADS (1)
-#endif
+#include <pthread.h>
+#include <stdio.h>  /* fopen, fread, fseek, fclose */
+#define _SFETCH_PLATFORM_POSIX (1)
+#define _SFETCH_PLATFORM_EMSCRIPTEN (0)
+#define _SFETCH_PLATFORM_WINDOWS (0)
+#define _SFETCH_HAS_THREADS (1)
 
 #ifdef _MSC_VER
 #pragma warning(push)

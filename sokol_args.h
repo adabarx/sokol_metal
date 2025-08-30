@@ -378,9 +378,7 @@ inline void sargs_setup(const sargs_desc& desc) { return sargs_setup(&desc); }
 #include <string.h> // memset, strcmp
 #include <stdlib.h> // malloc, free
 
-#if defined(__EMSCRIPTEN__)
-#include <emscripten/emscripten.h>
-#endif
+
 
 #ifndef SOKOL_API_IMPL
     #define SOKOL_API_IMPL
@@ -678,60 +676,6 @@ _SOKOL_PRIVATE bool _sargs_parse_cargs(int argc, const char** argv) {
 }
 
 //-- EMSCRIPTEN IMPLEMENTATION -------------------------------------------------
-#if defined(__EMSCRIPTEN__)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if defined(EM_JS_DEPS)
-EM_JS_DEPS(sokol_audio, "$withStackSave,$stringToUTF8OnStack")
-#endif
-
-EMSCRIPTEN_KEEPALIVE void _sargs_add_kvp(const char* key, const char* val) {
-    SOKOL_ASSERT(_sargs.valid && key && val);
-    if (_sargs.num_args >= _sargs.max_args) {
-        return;
-    }
-
-    /* copy key string */
-    char c;
-    _sargs.args[_sargs.num_args].key = _sargs.buf_pos;
-    const char* ptr = key;
-    while (0 != (c = *ptr++)) {
-        _sargs_putc(c);
-    }
-    _sargs_putc(0);
-
-    // copy value string
-    _sargs.args[_sargs.num_args].val = _sargs.buf_pos;
-    ptr = val;
-    while (0 != (c = *ptr++)) {
-        _sargs_putc(c);
-    }
-    _sargs_putc(0);
-
-    _sargs.num_args++;
-}
-#ifdef __cplusplus
-} // extern "C"
-#endif
-
-// JS function to extract arguments from the page URL
-EM_JS(void, sargs_js_parse_url, (void), {
-    const params = new URLSearchParams(window.location.search).entries();
-    for (let p = params.next(); !p.done; p = params.next()) {
-        const key = p.value[0];
-        const val = p.value[1];
-        withStackSave(() => {
-            const key_cstr = stringToUTF8OnStack(key);
-            const val_cstr = stringToUTF8OnStack(val);
-            __sargs_add_kvp(key_cstr, val_cstr)
-        });
-    }
-})
-
-#endif // EMSCRIPTEN
 
 //== PUBLIC IMPLEMENTATION FUNCTIONS ===========================================
 SOKOL_API_IMPL void sargs_setup(const sargs_desc* desc) {
