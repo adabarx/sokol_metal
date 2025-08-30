@@ -4,7 +4,7 @@
 //  accesses private functions and data. It may make sense to split
 //  these into two separate tests.
 //------------------------------------------------------------------------------
-#include "force_dummy_backend.h"
+#include "force_metal_backend.h"
 #define SOKOL_IMPL
 #include "sokol_gfx.h"
 #include "utest.h"

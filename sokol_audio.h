@@ -15,7 +15,6 @@
 
     Optionally provide the following defines with your own implementations:
 
-    SOKOL_DUMMY_BACKEND - use a dummy backend
     SOKOL_ASSERT(c)     - your own assert macro (default: assert(c))
     SOKOL_AUDIO_API_DECL- public function declaration prefix (default: extern)
     SOKOL_API_DECL      - same as SOKOL_AUDIO_API_DECL
@@ -664,132 +663,34 @@ inline void saudio_setup(const saudio_desc& desc) { return saudio_setup(&desc); 
     #define _SOKOL_UNUSED(x) (void)(x)
 #endif
 
-// platform detection defines
-#if defined(SOKOL_DUMMY_BACKEND)
-    // nothing
-#elif defined(__APPLE__)
-    #define _SAUDIO_APPLE (1)
-    #include <TargetConditionals.h>
-    #if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
-        #define _SAUDIO_IOS (1)
-    #else
-        #define _SAUDIO_MACOS (1)
-    #endif
-#elif defined(__EMSCRIPTEN__)
-    // Use dummy backend on non-Apple platforms in this Metal-only build
-    #ifndef SOKOL_DUMMY_BACKEND
-    #define SOKOL_DUMMY_BACKEND
-    #endif
-#elif defined(_WIN32)
-    // Use dummy backend on non-Apple platforms in this Metal-only build  
-    #ifndef SOKOL_DUMMY_BACKEND
-    #define SOKOL_DUMMY_BACKEND
-    #endif
-#elif defined(__ANDROID__)
-    // Use dummy backend on non-Apple platforms in this Metal-only build
-    #ifndef SOKOL_DUMMY_BACKEND
-    #define SOKOL_DUMMY_BACKEND
-    #endif
-#elif defined(__linux__) || defined(__unix__)
-    // Use dummy backend on non-Apple platforms in this Metal-only build
-    #ifndef SOKOL_DUMMY_BACKEND
-    #define SOKOL_DUMMY_BACKEND
-    #endif
+// Apple platform detection for Metal-only build
+#define _SAUDIO_APPLE (1)
+#include <TargetConditionals.h>
+#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+    #define _SAUDIO_IOS (1)
 #else
-#error "sokol_audio.h: Unknown platform"
+    #define _SAUDIO_MACOS (1)
 #endif
 
-// platform-specific headers and definitions
-#if defined(SOKOL_DUMMY_BACKEND)
-    #define _SAUDIO_NOTHREADS (1)
-#elif defined(_SAUDIO_WINDOWS)
-    #if defined(__GNUC__)
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic ignored "-Wunknown-pragmas"
+// Apple platform-specific headers and definitions
+#define _SAUDIO_PTHREADS (1)
+#include <pthread.h>
+#if defined(_SAUDIO_IOS)
+    // always use system headers on iOS (for now at least)
+    #if !defined(SAUDIO_OSX_USE_SYSTEM_HEADERS)
+        #define SAUDIO_OSX_USE_SYSTEM_HEADERS (1)
     #endif
-    #define _SAUDIO_WINTHREADS (1)
-    #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
-    #endif
-    #ifndef NOMINMAX
-    #define NOMINMAX
-    #endif
-    #include <windows.h>
-    #include <synchapi.h>
-    #pragma comment (lib, "kernel32")
-    #pragma comment (lib, "ole32")
-    #ifndef CINTERFACE
-    #define CINTERFACE
-    #endif
-    #ifndef COBJMACROS
-    #define COBJMACROS
-    #endif
-    #ifndef CONST_VTABLE
-    #define CONST_VTABLE
-    #endif
-    #include <mmdeviceapi.h>
-    #include <audioclient.h>
-    static const IID _saudio_IID_IAudioClient                               = { 0x1cb9ad4c, 0xdbfa, 0x4c32, {0xb1, 0x78, 0xc2, 0xf5, 0x68, 0xa7, 0x03, 0xb2} };
-    static const IID _saudio_IID_IMMDeviceEnumerator                        = { 0xa95664d2, 0x9614, 0x4f35, {0xa7, 0x46, 0xde, 0x8d, 0xb6, 0x36, 0x17, 0xe6} };
-    static const CLSID _saudio_CLSID_IMMDeviceEnumerator                    = { 0xbcde0395, 0xe52f, 0x467c, {0x8e, 0x3d, 0xc4, 0x57, 0x92, 0x91, 0x69, 0x2e} };
-    static const IID _saudio_IID_IAudioRenderClient                         = { 0xf294acfc, 0x3146, 0x4483, {0xa7, 0xbf, 0xad, 0xdc, 0xa7, 0xc2, 0x60, 0xe2} };
-    static const IID _saudio_IID_Devinterface_Audio_Render                  = { 0xe6327cad, 0xdcec, 0x4949, {0xae, 0x8a, 0x99, 0x1e, 0x97, 0x6a, 0x79, 0xd2} };
-    static const IID _saudio_IID_IActivateAudioInterface_Completion_Handler = { 0x94ea2b94, 0xe9cc, 0x49e0, {0xc0, 0xff, 0xee, 0x64, 0xca, 0x8f, 0x5b, 0x90} };
-    static const GUID _saudio_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT               = { 0x00000003, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71} };
-    #if defined(__cplusplus)
-    #define _SOKOL_AUDIO_WIN32COM_ID(x) (x)
-    #else
-    #define _SOKOL_AUDIO_WIN32COM_ID(x) (&x)
-    #endif
-    /* fix for Visual Studio 2015 SDKs */
-    #ifndef AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM
-    #define AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM 0x80000000
-    #endif
-    #ifndef AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY
-    #define AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY 0x08000000
-    #endif
-    #ifdef _MSC_VER
-        #pragma warning(push)
-        #pragma warning(disable:4505)   /* unreferenced local function has been removed */
-    #endif
-    #if defined(__GNUC__)
-        #pragma GCC diagnostic pop
-    #endif
-#elif defined(_SAUDIO_APPLE)
-    #define _SAUDIO_PTHREADS (1)
-    #include <pthread.h>
-    #if defined(_SAUDIO_IOS)
-        // always use system headers on iOS (for now at least)
-        #if !defined(SAUDIO_OSX_USE_SYSTEM_HEADERS)
-            #define SAUDIO_OSX_USE_SYSTEM_HEADERS (1)
+    #if !defined(__cplusplus)
+        #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
+            #error "sokol_audio.h on iOS requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
         #endif
-        #if !defined(__cplusplus)
-            #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
-                #error "sokol_audio.h on iOS requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
-            #endif
-        #endif
+    #endif
+    #include <AudioToolbox/AudioToolbox.h>
+    #include <AVFoundation/AVFoundation.h>
+#else
+    #if defined(SAUDIO_OSX_USE_SYSTEM_HEADERS)
         #include <AudioToolbox/AudioToolbox.h>
-        #include <AVFoundation/AVFoundation.h>
-    #else
-        #if defined(SAUDIO_OSX_USE_SYSTEM_HEADERS)
-            #include <AudioToolbox/AudioToolbox.h>
-        #endif
     #endif
-#elif defined(_SAUDIO_ANDROID)
-    #define _SAUDIO_PTHREADS (1)
-    #include <pthread.h>
-    #include "aaudio/AAudio.h"
-#elif defined(_SAUDIO_LINUX)
-    #if !defined(__FreeBSD__)
-        #include <alloca.h>
-    #endif
-    #define _SAUDIO_PTHREADS (1)
-    #include <pthread.h>
-    #define ALSA_PCM_NEW_HW_PARAMS_API
-    #include <alsa/asoundlib.h>
-#elif defined(__EMSCRIPTEN__)
-    #define _SAUDIO_NOTHREADS (1)
-    #include <emscripten/emscripten.h>
 #endif
 
 #define _saudio_def(val, def) (((val) == 0) ? (def) : (val))
@@ -811,33 +712,10 @@ inline void saudio_setup(const saudio_desc& desc) { return saudio_setup(&desc); 
 // ███████    ██    ██   ██  ██████   ██████    ██    ███████
 //
 // >>structs
-#if defined(_SAUDIO_PTHREADS)
-
+// Pthreads-based mutex for Apple platforms
 typedef struct {
     pthread_mutex_t mutex;
 } _saudio_mutex_t;
-
-#elif defined(_SAUDIO_WINTHREADS)
-
-typedef struct {
-    CRITICAL_SECTION critsec;
-} _saudio_mutex_t;
-
-#elif defined(_SAUDIO_NOTHREADS)
-
-typedef struct {
-    int dummy_mutex;
-} _saudio_mutex_t;
-
-#endif
-
-#if defined(SOKOL_DUMMY_BACKEND)
-
-typedef struct {
-    int dummy;
-} _saudio_dummy_backend_t;
-
-#elif defined(_SAUDIO_APPLE)
 
 #if defined(SAUDIO_OSX_USE_SYSTEM_HEADERS)
 
@@ -943,70 +821,7 @@ typedef struct {
     #endif
 } _saudio_apple_backend_t;
 
-#elif defined(_SAUDIO_LINUX)
-
-typedef struct {
-    snd_pcm_t* device;
-    float* buffer;
-    int buffer_byte_size;
-    int buffer_frames;
-    pthread_t thread;
-    bool thread_stop;
-} _saudio_alsa_backend_t;
-
-#elif defined(_SAUDIO_ANDROID)
-
-typedef struct {
-    AAudioStreamBuilder* builder;
-    AAudioStream* stream;
-    pthread_t thread;
-    pthread_mutex_t mutex;
-} _saudio_aaudio_backend_t;
-
-#elif defined(_SAUDIO_WINDOWS)
-
-typedef struct {
-    HANDLE thread_handle;
-    HANDLE buffer_end_event;
-    bool stop;
-    UINT32 dst_buffer_frames;
-    int src_buffer_frames;
-    int src_buffer_byte_size;
-    int src_buffer_pos;
-    float* src_buffer;
-} _saudio_wasapi_thread_data_t;
-
-typedef struct {
-    IMMDeviceEnumerator* device_enumerator;
-    IMMDevice* device;
-    IAudioClient* audio_client;
-    IAudioRenderClient* render_client;
-    _saudio_wasapi_thread_data_t thread;
-} _saudio_wasapi_backend_t;
-
-#elif defined(_SAUDIO_EMSCRIPTEN)
-
-typedef struct {
-    uint8_t* buffer;
-} _saudio_web_backend_t;
-
-#else
-#error "unknown platform"
-#endif
-
-#if defined(SOKOL_DUMMY_BACKEND)
-typedef _saudio_dummy_backend_t _saudio_backend_t;
-#elif defined(_SAUDIO_APPLE)
 typedef _saudio_apple_backend_t _saudio_backend_t;
-#elif defined(_SAUDIO_EMSCRIPTEN)
-typedef _saudio_web_backend_t _saudio_backend_t;
-#elif defined(_SAUDIO_WINDOWS)
-typedef _saudio_wasapi_backend_t _saudio_backend_t;
-#elif defined(_SAUDIO_ANDROID)
-typedef _saudio_aaudio_backend_t _saudio_backend_t;
-#elif defined(_SAUDIO_LINUX)
-typedef _saudio_alsa_backend_t _saudio_backend_t;
-#endif
 
 /* a ringbuffer structure */
 typedef struct {
