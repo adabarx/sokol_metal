@@ -18,20 +18,13 @@
     the backend selected for sokol_gfx.h if both are used in the same
     project):
 
-        #define SOKOL_GLCORE
-        #define SOKOL_GLES3
-        #define SOKOL_D3D11
         #define SOKOL_METAL
-        #define SOKOL_WGPU
         #define SOKOL_NOAPI
 
     Optionally provide the following defines with your own implementations:
 
         SOKOL_ASSERT(c)             - your own assert macro (default: assert(c))
         SOKOL_UNREACHABLE()         - a guard macro for unreachable code (default: assert(0))
-        SOKOL_WIN32_FORCE_MAIN      - define this on Win32 to add a main() entry point
-        SOKOL_WIN32_FORCE_WINMAIN   - define this on Win32 to add a WinMain() entry point (enabled by default unless
-                                      SOKOL_WIN32_FORCE_MAIN or SOKOL_NO_ENTRY is defined)
         SOKOL_NO_ENTRY              - define this if sokol_app.h shouldn't "hijack" the main() function
         SOKOL_APP_API_DECL          - public function declaration prefix (default: extern)
         SOKOL_API_DECL              - same as SOKOL_APP_API_DECL
@@ -47,106 +40,70 @@
 
         SOKOL_DLL
 
-    On Windows, SOKOL_DLL will define SOKOL_APP_API_DECL as __declspec(dllexport)
-    or __declspec(dllimport) as needed.
-
-    if SOKOL_WIN32_FORCE_MAIN and SOKOL_WIN32_FORCE_WINMAIN are both defined,
-    it is up to the developer to define the desired subsystem.
-
-    On Linux, SOKOL_GLCORE can use either GLX or EGL.
-    GLX is default, set SOKOL_FORCE_EGL to override.
+    (Note: This is a Metal-only build for Apple platforms)
 
     For example code, see https://github.com/floooh/sokol-samples/tree/master/sapp
-
-    Portions of the Windows and Linux GL initialization, event-, icon- etc... code
-    have been taken from GLFW (http://www.glfw.org/).
-
-    iOS onscreen keyboard support 'inspired' by libgdx.
 
     Link with the following system libraries:
 
     - on macOS with Metal: Cocoa, QuartzCore, Metal, MetalKit
-    - on macOS with GL: Cocoa, QuartzCore, OpenGL
     - on iOS with Metal: Foundation, UIKit, Metal, MetalKit
-    - on iOS with GL: Foundation, UIKit, OpenGLES, GLKit
-    - on Linux with EGL: X11, Xi, Xcursor, EGL, GL (or GLESv2), dl, pthread, m(?)
-    - on Linux with GLX: X11, Xi, Xcursor, GL, dl, pthread, m(?)
-    - on Android: GLESv3, EGL, log, android
-    - on Windows with the MSVC or Clang toolchains: no action needed, libs are defined in-source via pragma-comment-lib
-    - on Windows with MINGW/MSYS2 gcc: compile with '-mwin32' so that _WIN32 is defined
-        - link with the following libs: -lkernel32 -luser32 -lshell32
-        - additionally with the GL backend: -lgdi32
-        - additionally with the D3D11 backend: -ld3d11 -ldxgi
-
-    On Linux, you also need to use the -pthread compiler and linker option, otherwise weird
-    things will happen, see here for details: https://github.com/floooh/sokol/issues/376
 
     On macOS and iOS, the implementation must be compiled as Objective-C.
 
-    On Emscripten:
-        - for WebGL2: add the linker option `-s USE_WEBGL2=1`
-        - for WebGPU: compile and link with `--use-port=emdawnwebgpu`
-          (for more exotic situations, read: https://dawn.googlesource.com/dawn/+/refs/heads/main/src/emdawnwebgpu/pkg/README.md)
-
     FEATURE OVERVIEW
     ================
-    sokol_app.h provides a minimalistic cross-platform API which
+    sokol_app.h provides a minimalistic API for Apple platforms which
     implements the 'application-wrapper' parts of a 3D application:
 
     - a common application entry function
     - creates a window and 3D-API context/device with a 'default framebuffer'
     - makes the rendered frame visible
     - provides keyboard-, mouse- and low-level touch-events
-    - platforms: MacOS, iOS, HTML5, Win32, Linux/RaspberryPi, Android
-    - 3D-APIs: Metal, D3D11, GL4.1, GL4.3, GLES3, WebGL, WebGL2, NOAPI
+    - platforms: macOS, iOS
+    - 3D-API: Metal
 
     FEATURE/PLATFORM MATRIX
     =======================
-                        | Windows | macOS | Linux |  iOS  | Android |  HTML5
-    --------------------+---------+-------+-------+-------+---------+--------
-    gl 4.x              | YES     | YES   | YES   | ---   | ---     |  ---
-    gles3/webgl2        | ---     | ---   | YES(2)| YES   | YES     |  YES
-    metal               | ---     | YES   | ---   | YES   | ---     |  ---
-    d3d11               | YES     | ---   | ---   | ---   | ---     |  ---
-    noapi               | YES     | TODO  | TODO  | ---   | TODO    |  ---
-    KEY_DOWN            | YES     | YES   | YES   | SOME  | TODO    |  YES
-    KEY_UP              | YES     | YES   | YES   | SOME  | TODO    |  YES
-    CHAR                | YES     | YES   | YES   | YES   | TODO    |  YES
-    MOUSE_DOWN          | YES     | YES   | YES   | ---   | ---     |  YES
-    MOUSE_UP            | YES     | YES   | YES   | ---   | ---     |  YES
-    MOUSE_SCROLL        | YES     | YES   | YES   | ---   | ---     |  YES
-    MOUSE_MOVE          | YES     | YES   | YES   | ---   | ---     |  YES
-    MOUSE_ENTER         | YES     | YES   | YES   | ---   | ---     |  YES
-    MOUSE_LEAVE         | YES     | YES   | YES   | ---   | ---     |  YES
-    TOUCHES_BEGAN       | ---     | ---   | ---   | YES   | YES     |  YES
-    TOUCHES_MOVED       | ---     | ---   | ---   | YES   | YES     |  YES
-    TOUCHES_ENDED       | ---     | ---   | ---   | YES   | YES     |  YES
-    TOUCHES_CANCELLED   | ---     | ---   | ---   | YES   | YES     |  YES
-    RESIZED             | YES     | YES   | YES   | YES   | YES     |  YES
-    ICONIFIED           | YES     | YES   | YES   | ---   | ---     |  ---
-    RESTORED            | YES     | YES   | YES   | ---   | ---     |  ---
-    FOCUSED             | YES     | YES   | YES   | ---   | ---     |  YES
-    UNFOCUSED           | YES     | YES   | YES   | ---   | ---     |  YES
-    SUSPENDED           | ---     | ---   | ---   | YES   | YES     |  TODO
-    RESUMED             | ---     | ---   | ---   | YES   | YES     |  TODO
-    QUIT_REQUESTED      | YES     | YES   | YES   | ---   | ---     |  YES
-    IME                 | TODO    | TODO? | TODO  | ???   | TODO    |  ???
-    key repeat flag     | YES     | YES   | YES   | ---   | ---     |  YES
-    windowed            | YES     | YES   | YES   | ---   | ---     |  YES
-    fullscreen          | YES     | YES   | YES   | YES   | YES     |  ---
-    mouse hide          | YES     | YES   | YES   | ---   | ---     |  YES
-    mouse lock          | YES     | YES   | YES   | ---   | ---     |  YES
-    set cursor type     | YES     | YES   | YES   | ---   | ---     |  YES
-    screen keyboard     | ---     | ---   | ---   | YES   | TODO    |  YES
-    swap interval       | YES     | YES   | YES   | YES   | TODO    |  YES
-    high-dpi            | YES     | YES   | TODO  | YES   | YES     |  YES
-    clipboard           | YES     | YES   | YES   | ---   | ---     |  YES
-    MSAA                | YES     | YES   | YES   | YES   | YES     |  YES
-    drag'n'drop         | YES     | YES   | YES   | ---   | ---     |  YES
-    window icon         | YES     | YES(1)| YES   | ---   | ---     |  YES
+                        | macOS | iOS  
+    --------------------+-------+------
+    metal               | YES   | YES  
+    KEY_DOWN            | YES   | SOME 
+    KEY_UP              | YES   | SOME 
+    CHAR                | YES   | YES  
+    MOUSE_DOWN          | YES   | ---  
+    MOUSE_UP            | YES   | ---  
+    MOUSE_SCROLL        | YES   | ---  
+    MOUSE_MOVE          | YES   | ---  
+    MOUSE_ENTER         | YES   | ---  
+    MOUSE_LEAVE         | YES   | ---  
+    TOUCHES_BEGAN       | ---   | YES  
+    TOUCHES_MOVED       | ---   | YES  
+    TOUCHES_ENDED       | ---   | YES  
+    TOUCHES_CANCELLED   | ---   | YES  
+    RESIZED             | YES   | YES  
+    ICONIFIED           | YES   | ---  
+    RESTORED            | YES   | ---  
+    FOCUSED             | YES   | ---  
+    UNFOCUSED           | YES   | ---  
+    SUSPENDED           | ---   | YES  
+    RESUMED             | ---   | YES  
+    QUIT_REQUESTED      | YES   | ---  
+    key repeat flag     | YES   | ---  
+    windowed            | YES   | ---  
+    fullscreen          | YES   | YES  
+    mouse hide          | YES   | ---  
+    mouse lock          | YES   | ---  
+    set cursor type     | YES   | ---  
+    screen keyboard     | ---   | YES  
+    swap interval       | YES   | YES  
+    high-dpi            | YES   | YES  
+    clipboard           | YES   | ---  
+    MSAA                | YES   | YES  
+    drag'n'drop         | YES   | ---  
+    window icon         | YES(1)| ---  
 
     (1) macOS has no regular window icons, instead the dock icon is changed
-    (2) supported with EGL only (not GLX)
 
     STEP BY STEP
     ============

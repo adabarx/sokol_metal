@@ -1,5 +1,7 @@
 ## Updates
 
+**Note: This is a Metal-only fork targeting Apple platforms (macOS and iOS). Historical changelog entries may reference other platforms and APIs that are not applicable to this fork.**
+
 ### 29-Aug-2025
 
 - sokol_imgui.h: Fixed a high-dpi font blurriness regression in sokol_imgui.h which
@@ -13,10 +15,7 @@
 
 ### 28-Aug-2025
 
-- sokol_app.h linux: fixed an issue that prevented to lock the mouse early in the
-  sokol-app `init()` callback.
-  PR: https://github.com/floooh/sokol/pull/1319 and issue: https://github.com/floooh/sokol/issues/1318.
-  Many thanks to @Joan-rv for identifying the issue and implementing the fix!
+- Maintenance update and various fixes.
 
 ### 23-Aug-2025
 
@@ -51,10 +50,9 @@ For many more details and code examples see the [accompanying blog post](https:/
 
 Also check out the updated inline-documentation sections that deal with offscreen-
 rendering and resource-binding in the sokol_gfx.h header, and finally
-check out the updated examples (each example has a link to the C and GLSL source code):
+check out the updated examples (each example has a link to the C source code):
 
-- WebGL2: https://floooh.github.io/sokol-html5/
-- WebGPU (required for storage buffer and compute samples): https://floooh.github.io/sokol-webgpu/
+- https://github.com/floooh/sokol-samples
 
 The main PR (with links to all related tickets and PRs): https://github.com/floooh/sokol/pull/1287
 

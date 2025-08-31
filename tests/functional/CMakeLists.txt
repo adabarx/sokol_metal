@@ -1,5 +1,3 @@
-if (NOT ANDROID)
-
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets/comsi.s3m DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets/comsi.s3m DESTINATION ${CMAKE_BINARY_DIR}/Debug)
 
@@ -19,5 +17,3 @@ set(c_sources
 add_executable(sokol-test ${c_sources})
 target_link_libraries(sokol-test PUBLIC spine)
 configure_c(sokol-test)
-
-endif()
