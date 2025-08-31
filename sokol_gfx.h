@@ -36,17 +36,15 @@
     SOKOL_API_DECL              - same as SOKOL_GFX_API_DECL
     SOKOL_API_IMPL              - public function implementation prefix (default: -)
     SOKOL_TRACE_HOOKS           - enable trace hook callbacks (search below for TRACE HOOKS)
-    SOKOL_EXTERNAL_GL_LOADER    - indicates that you're using your own GL loader, in this case
-                                  sokol_gfx.h will not include any platform GL headers and disable
-                                  the integrated Win32 GL loader
+    SOKOL_EXTERNAL_GL_LOADER    - indicates that you're using your own GL loader
+                                  (not applicable for Metal-only builds)
 
     If sokol_gfx.h is compiled as a DLL, define the following before
     including the declaration or implementation:
 
     SOKOL_DLL
 
-    On Windows, SOKOL_DLL will define SOKOL_GFX_API_DECL as __declspec(dllexport)
-    or __declspec(dllimport) as needed.
+    (Note: This is a Metal-only build for Apple platforms)
 
     If you want to compile without deprecated structs and functions,
     define:
@@ -62,21 +60,8 @@
     additional linker requirements):
 
     - on macOS/iOS with Metal: Metal
-    - on macOS with GL: OpenGL
-    - on iOS with GL: OpenGLES
-    - on Linux with EGL: GL or GLESv2
-    - on Linux with GLX: GL
-    - on Android: GLESv3, log, android
-    - on Windows with the MSVC or Clang toolchains: no action needed, libs are defined in-source via pragma-comment-lib
-    - on Windows with MINGW/MSYS2 gcc: compile with '-mwin32' so that _WIN32 is defined
-        - with the D3D11 backend: -ld3d11
 
     On macOS and iOS, the implementation must be compiled as Objective-C.
-
-    On Emscripten:
-        - for WebGL2: add the linker option `-s USE_WEBGL2=1`
-        - for WebGPU: compile and link with `--use-port=emdawnwebgpu`
-          (for more exotic situations, read: https://dawn.googlesource.com/dawn/+/refs/heads/main/src/emdawnwebgpu/pkg/README.md)
 
     sokol_gfx DOES NOT:
     ===================
@@ -782,22 +767,9 @@
     be more efficient than computing the same data on the CPU and then uploading
     it via `sg_update_buffer()` or `sg_update_image()`.
 
-    NOTE: compute passes are only supported on the following platforms and
-    backends:
+    NOTE: compute passes are supported on Apple platforms with Metal:
 
         - macOS and iOS with Metal
-        - Windows with D3D11 and OpenGL
-        - Linux with OpenGL or GLES3.1+
-        - Web with WebGPU
-        - Android with GLES3.1+
-
-    ...this means compute shaders can't be used on the following platform/backend
-    combos (the same restrictions apply to using storage buffers without compute
-    shaders):
-
-        - macOS with GL
-        - iOS with GLES3
-        - Web with WebGL2
 
     A compute pass is started with:
 
