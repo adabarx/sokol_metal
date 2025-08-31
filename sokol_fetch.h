@@ -1007,11 +1007,8 @@ typedef struct sfetch_range_t {
 #pragma warning(disable:4221)   // /W4 only: nonstandard extension used: 'x': cannot be initialized using address of automatic variable 'y'
 #pragma warning(disable:4204)   // VS2015: nonstandard extension used: non-constant aggregate initializer
 #endif
-#if defined(__cplusplus)
-#define SFETCH_RANGE(x) sfetch_range_t{ &x, sizeof(x) }
-#else
+/* C89-only build - use C-style compound literals */
 #define SFETCH_RANGE(x) (sfetch_range_t){ &x, sizeof(x) }
-#endif
 
 /*
     sfetch_allocator_t

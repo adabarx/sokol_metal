@@ -670,10 +670,9 @@ SOKOL_AUDIO_API_DECL int saudio_push(const float* frames, int num_frames);
     #if !defined(SAUDIO_OSX_USE_SYSTEM_HEADERS)
         #define SAUDIO_OSX_USE_SYSTEM_HEADERS (1)
     #endif
-    #if !defined(__cplusplus)
-        #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
-            #error "sokol_audio.h on iOS requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
-        #endif
+    /* C89-only build - always enable ARC field support check */
+    #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
+        #error "sokol_audio.h on iOS requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
     #endif
     #include <AudioToolbox/AudioToolbox.h>
     #include <AVFoundation/AVFoundation.h>
