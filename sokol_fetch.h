@@ -1003,7 +1003,7 @@ typedef struct sfetch_range_t {
     size_t size;
 } sfetch_range_t;
 
-// disabling this for every includer isn't great, but the warnings are also quite pointless
+/* disabling this for every includer isn't great, but the warnings are also quite pointless */
 #if defined(_MSC_VER)
 #pragma warning(disable:4221)   // /W4 only: nonstandard extension used: 'x': cannot be initialized using address of automatic variable 'y'
 #pragma warning(disable:4204)   // VS2015: nonstandard extension used: non-constant aggregate initializer

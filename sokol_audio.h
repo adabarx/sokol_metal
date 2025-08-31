@@ -609,7 +609,7 @@ SOKOL_AUDIO_API_DECL bool saudio_suspended(void);
 SOKOL_AUDIO_API_DECL int saudio_expect(void);
 /* push sample frames from main thread, returns number of frames actually pushed */
 SOKOL_AUDIO_API_DECL int saudio_push(const float* frames, int num_frames);
-#endif // SOKOL_AUDIO_INCLUDED
+#endif /* SOKOL_AUDIO_INCLUDED */
 
 // ██ ███    ███ ██████  ██      ███████ ███    ███ ███████ ███    ██ ████████  █████  ████████ ██  ██████  ███    ██
 // ██ ████  ████ ██   ██ ██      ██      ████  ████ ██      ████   ██    ██    ██   ██    ██    ██ ██    ██ ████   ██

@@ -1532,7 +1532,7 @@ typedef enum sapp_mousebutton {
     SAPP_MOUSEBUTTON_LEFT = 0x0,
     SAPP_MOUSEBUTTON_RIGHT = 0x1,
     SAPP_MOUSEBUTTON_MIDDLE = 0x2,
-    SAPP_MOUSEBUTTON_INVALID = 0x100,
+    SAPP_MOUSEBUTTON_INVALID = 0x100
 } sapp_mousebutton;
 
 /*
@@ -1540,13 +1540,13 @@ typedef enum sapp_mousebutton {
     passed in the event struct field sapp_event.modifiers.
 */
 enum {
-    SAPP_MODIFIER_SHIFT = 0x1,      // left or right shift key
-    SAPP_MODIFIER_CTRL  = 0x2,      // left or right control key
-    SAPP_MODIFIER_ALT   = 0x4,      // left or right alt key
-    SAPP_MODIFIER_SUPER = 0x8,      // left or right 'super' key
-    SAPP_MODIFIER_LMB   = 0x100,    // left mouse button
-    SAPP_MODIFIER_RMB   = 0x200,    // right mouse button
-    SAPP_MODIFIER_MMB   = 0x400,    // middle mouse button
+    SAPP_MODIFIER_SHIFT = 0x1,      /* left or right shift key */
+    SAPP_MODIFIER_CTRL  = 0x2,      /* left or right control key */
+    SAPP_MODIFIER_ALT   = 0x4,      /* left or right alt key */
+    SAPP_MODIFIER_SUPER = 0x8,      /* left or right 'super' key */
+    SAPP_MODIFIER_LMB   = 0x100,    /* left mouse button */
+    SAPP_MODIFIER_RMB   = 0x200,    /* right mouse button */
+    SAPP_MODIFIER_MMB   = 0x400     /* middle mouse button */
 };
 
 /*
