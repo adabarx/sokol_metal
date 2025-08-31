@@ -1,7 +1,7 @@
 <p align="center">
     <img src="assets/logo_full_large.png" style="width: 60%" /><br/><br/>Simple
     <a href="https://github.com/nothings/stb/blob/master/docs/stb_howto.txt">STB-style</a>
-    cross-platform libraries for C and C++, written in C.<br/><br/>
+    Simple headers for C and C++, written in C.<br/><br/>
 </p>
 
 # Sokol
@@ -12,16 +12,16 @@
 
 ## Examples and Related Projects
 
-- [Live Samples](https://floooh.github.io/sokol-html5/index.html) via WASM ([source](https://github.com/floooh/sokol-samples))
+
 
 - [Doom Shareware](https://floooh.github.io/doom-sokol/) ported to the Sokol headers ([source](https://github.com/floooh/doom-sokol))
 
 - [Everybody Wants to Crank the World](https://aras-p.github.io/demo-pd-cranktheworld/) demo by
-Aras Pranckevičius, PC/web port via sokol ([source](https://github.com/aras-p/demo-pd-cranktheworld)).
+Aras Pranckevičius ([source](https://github.com/aras-p/demo-pd-cranktheworld)).
 
 - [sokol_gp.h](https://github.com/edubart/sokol_gp) a 2D shape drawing library on top of sokol_gfx.h
 
-- [LearnOpenGL examples ported to sokol-gfx](https://zeromake.github.io/learnopengl-examples/) ([git repo](https://github.com/zeromake/learnopengl-examples))
+
 
 - [Dear ImGui starterkit](https://github.com/floooh/cimgui-sokol-starterkit) a self-contained starterkit for writing Dear ImGui apps in C.
 
@@ -53,19 +53,19 @@ useful details for integrating the Sokol headers into your own project with your
 
 ## Core libraries
 
-- [**sokol\_gfx.h**](https://github.com/floooh/sokol/blob/master/sokol_gfx.h): 3D-API wrapper (GL/GLES3/WebGL2 + Metal + D3D11 + WebGPU)
+- [**sokol\_gfx.h**](https://github.com/floooh/sokol/blob/master/sokol_gfx.h): 3D-API wrapper (Metal-only for Apple platforms)
 - [**sokol\_app.h**](https://github.com/floooh/sokol/blob/master/sokol_app.h): app framework wrapper (entry + window + 3D-context + input)
 - [**sokol\_time.h**](https://github.com/floooh/sokol/blob/master/sokol_time.h): time measurement
 - [**sokol\_audio.h**](https://github.com/floooh/sokol/blob/master/sokol_audio.h): minimal buffer-streaming audio playback
 - [**sokol\_fetch.h**](https://github.com/floooh/sokol/blob/master/sokol_fetch.h): asynchronous data streaming from HTTP and local filesystem
-- [**sokol\_args.h**](https://github.com/floooh/sokol/blob/master/sokol_args.h): unified cmdline/URL arg parser for web and native apps
+- [**sokol\_args.h**](https://github.com/floooh/sokol/blob/master/sokol_args.h): unified command line argument parser
 - [**sokol\_log.h**](https://github.com/floooh/sokol/blob/master/sokol_log.h): provides a standard logging callback for the other sokol headers
 
 ## Utility libraries
 
 - [**sokol\_imgui.h**](https://github.com/floooh/sokol/blob/master/util/sokol_imgui.h): sokol_gfx.h rendering backend for [Dear ImGui](https://github.com/ocornut/imgui)
 - [**sokol\_nuklear.h**](https://github.com/floooh/sokol/blob/master/util/sokol_nuklear.h): sokol_gfx.h rendering backend for [Nuklear](https://github.com/Immediate-Mode-UI/Nuklear)
-- [**sokol\_gl.h**](https://github.com/floooh/sokol/blob/master/util/sokol_gl.h): OpenGL 1.x style immediate-mode rendering API on top of sokol_gfx.h
+- [**sokol\_gl.h**](https://github.com/floooh/sokol/blob/master/util/sokol_gl.h): classic immediate-mode rendering API on top of sokol_gfx.h
 - [**sokol\_fontstash.h**](https://github.com/floooh/sokol/blob/master/util/sokol_fontstash.h): sokol_gl.h rendering backend for [fontstash](https://github.com/memononen/fontstash)
 - [**sokol\_gfx\_imgui.h**](https://github.com/floooh/sokol/blob/master/util/sokol_gfx_imgui.h): debug-inspection UI for sokol_gfx.h (implemented with Dear ImGui)
 - [**sokol\_debugtext.h**](https://github.com/floooh/sokol/blob/master/util/sokol_debugtext.h): a simple text renderer using vintage home computer fonts
@@ -88,9 +88,8 @@ These are automatically updated on changes to the C headers:
 
 ## Notes
 
-WebAssembly is a 'first-class citizen', one important motivation for the
-Sokol headers is to provide a collection of cross-platform APIs with a
-minimal footprint on the web platform while still being useful.
+The Sokol headers provide a collection of APIs specifically 
+designed for Apple platforms with Metal backend.
 
 The core headers are standalone and can be used independently from each other.
 
@@ -104,7 +103,7 @@ A blog post with more background info: [A Tour of sokol_gfx.h](http://floooh.git
 
 # sokol_gfx.h:
 
-- simple, modern wrapper around GLES3/WebGL2, GL3.3, D3D11, Metal, and WebGPU
+- simple, modern wrapper around Metal for Apple platforms
 - buffers, images, shaders, pipeline-state-objects and render-passes
 - does *not* handle window creation or 3D API context initialization
 - does *not* provide shader dialect cross-translation (**BUT** there's now an 'official' shader-cross-compiler solution which
@@ -112,14 +111,14 @@ seamlessly integrates with sokol_gfx.h and IDEs: [see here for details](https://
 
 # sokol_app.h
 
-A minimal cross-platform application-wrapper library:
+A minimal application-wrapper library for Apple platforms:
 
 - unified application entry
 - single window or canvas for 3D rendering
 - 3D context initialization
 - event-based keyboard, mouse and touch input
-- supported platforms: Win32, MacOS, Linux (X11), iOS, WASM, Android, UWP
-- supported 3D-APIs: GL3.3 (GLX/WGL), Metal, D3D11, GLES3/WebGL2
+- supported platforms: macOS, iOS
+- supported 3D-API: Metal
 
 The vanilla Hello-Triangle using sokol_gfx.h, sokol_app.h and the
 sokol-shdc shader compiler (shader code not shown):
@@ -205,10 +204,7 @@ A minimal audio-streaming API:
     2. alternatively push small packets of audio data from your main loop,
     or a separate thread created by you
 - platform backends:
-    - Windows: WASAPI
     - macOS/iOS: CoreAudio
-    - Linux: ALSA
-    - emscripten: WebAudio + ScriptProcessorNode (doesn't use the emscripten-provided OpenAL or SDL Audio wrappers)
 
 A simple mono square-wave generator using the callback model:
 
@@ -279,8 +275,7 @@ int main() {
 
 # sokol_fetch.h
 
-Load entire files, or stream data asynchronously over HTTP (emscripten/wasm)
-or the local filesystem (all native platforms).
+Load entire files, or stream data asynchronously from the local filesystem.
 
 Simple C99 example loading a file into a static buffer:
 
@@ -345,7 +340,7 @@ static void shutdown(void) {
 
 # sokol_time.h:
 
-Simple cross-platform time measurement:
+Simple time measurement for Apple platforms:
 
 ```c
 #include "sokol_time.h"
@@ -383,14 +378,9 @@ while (!done) {
 
 # sokol_args.h
 
-Unified argument parsing for web and native apps. Uses argc/argv on native
-platforms and the URL query string on the web.
+Unified command line argument parsing. Uses argc/argv.
 
-Example URL with one arg:
-
-https://floooh.github.io/tiny8bit/kc85.html?type=kc85_4
-
-The same as command line app:
+Command line application example:
 
 > kc85 type=kc85_4
 
@@ -417,5 +407,4 @@ int main(int argc, char* argv[]) {
 }
 ```
 
-See the sokol_args.h header for a more complete documentation, and the [Tiny
-Emulators](https://floooh.github.io/tiny8bit/) for more interesting usage examples.
+See the sokol_args.h header for a more complete documentation.

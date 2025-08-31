@@ -34,12 +34,9 @@
     On Windows, SOKOL_DLL will define SOKOL_FETCH_API_DECL as __declspec(dllexport)
     or __declspec(dllimport) as needed.
 
-    NOTE: The following documentation talks a lot about "IO threads". Actual
-    threads are only used on platforms where threads are available. The web
-    version (emscripten/wasm) doesn't use POSIX-style threads, but instead
-    asynchronous Javascript calls chained together by callbacks. The actual
-    source code differences between the two approaches have been kept to
-    a minimum though.
+    NOTE: The following documentation talks about "IO threads". This
+    implementation uses POSIX-style threads on Apple platforms for
+    asynchronous file operations.
 
     FEATURE OVERVIEW
     ================

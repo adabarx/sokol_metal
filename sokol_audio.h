@@ -29,31 +29,20 @@
 
     SOKOL_DLL
 
-    On Windows, SOKOL_DLL will define SOKOL_AUDIO_API_DECL as __declspec(dllexport)
-    or __declspec(dllimport) as needed.
+    (Note: This is a Metal-only build for Apple platforms)
 
     Link with the following libraries:
 
     - on macOS: AudioToolbox
     - on iOS: AudioToolbox, AVFoundation
-    - on FreeBSD: asound
-    - on Linux: asound
-    - on Android: aaudio
-    - on Windows with MSVC or Clang toolchain: no action needed, libs are defined in-source via pragma-comment-lib
-    - on Windows with MINGW/MSYS2 gcc: compile with '-mwin32' and link with -lole32
 
     FEATURE OVERVIEW
     ================
     You provide a mono- or stereo-stream of 32-bit float samples, which
-    Sokol Audio feeds into platform-specific audio backends:
+    Sokol Audio feeds into CoreAudio on Apple platforms:
 
-    - Windows: WASAPI
-    - Linux: ALSA
-    - FreeBSD: ALSA
     - macOS: CoreAudio
     - iOS: CoreAudio+AVAudioSession
-    - emscripten: WebAudio with ScriptProcessorNode
-    - Android: AAudio
 
     Sokol Audio will not do any buffer mixing or volume control, if you have
     multiple independent input streams of sample data you need to perform the
@@ -62,24 +51,23 @@
     There are two mutually exclusive ways to provide the sample data:
 
     1. Callback model: You provide a callback function, which will be called
-       when Sokol Audio needs new samples. On all platforms except emscripten,
-       this function is called from a separate thread.
+       when Sokol Audio needs new samples. This function is called from a separate thread.
     2. Push model: Your code pushes small blocks of sample data from your
        main loop or a thread you created. The pushed data is stored in
        a ring buffer where it is pulled by the backend code when
        needed.
 
     The callback model is preferred because it is the most direct way to
-    feed sample data into the audio backends and also has less moving parts
+    feed sample data into CoreAudio and also has less moving parts
     (there is no ring buffer between your code and the audio backend).
 
     Sometimes it is not possible to generate the audio stream directly in a
     callback function running in a separate thread, for such cases Sokol Audio
     provides the push-model as a convenience.
 
-    SOKOL AUDIO, SOLOUD AND MINIAUDIO
-    =================================
-    The WASAPI, ALSA and CoreAudio backend code has been taken from the
+    SOKOL AUDIO LIBRARIES
+    =====================
+    The CoreAudio backend code has been taken from the
     SoLoud library (with some modifications, so any bugs in there are most
     likely my fault). If you need a more fully-featured audio solution, check
     out SoLoud, it's excellent:
@@ -306,37 +294,14 @@
             }
         }
 
-    THE WEBAUDIO BACKEND
-    ====================
-    The WebAudio backend is currently using a ScriptProcessorNode callback to
-    feed the sample data into WebAudio. ScriptProcessorNode has been
-    deprecated for a while because it is running from the main thread, with
-    the default initialization parameters it works 'pretty well' though.
-    Ultimately Sokol Audio will use Audio Worklets, but this requires a few
-    more things to fall into place (Audio Worklets implemented everywhere,
-    SharedArrayBuffers enabled again, and I need to figure out a 'low-cost'
-    solution in terms of implementation effort, since Audio Worklets are
-    a lot more complex than ScriptProcessorNode if the audio data needs to come
-    from the main thread).
-
-    The WebAudio backend is automatically selected when compiling for
-    emscripten (__EMSCRIPTEN__ define exists).
-
-    https://developers.google.com/web/updates/2017/12/audio-worklet
-    https://developers.google.com/web/updates/2018/06/audio-worklet-design-pattern
-
-    "Blob URLs": https://www.html5rocks.com/en/tutorials/workers/basics/
-
-    Also see: https://blog.paul.cx/post/a-wait-free-spsc-ringbuffer-for-the-web/
-
     THE COREAUDIO BACKEND
     =====================
-    The CoreAudio backend is selected on macOS and iOS (__APPLE__ is defined).
-    Since the CoreAudio API is implemented in C (not Objective-C) on macOS the
-    implementation part of Sokol Audio can be included into a C source file.
+    The CoreAudio backend is selected on macOS and iOS. Since the CoreAudio API 
+    is implemented in C (not Objective-C) on macOS the implementation part of 
+    Sokol Audio can be included into a C source file.
 
     However on iOS, Sokol Audio must be compiled as Objective-C due to it's
-    reliance on the AVAudioSession object. The iOS code path support both
+    reliance on the AVAudioSession object. The iOS code path supports both
     being compiled with or without ARC (Automatic Reference Counting).
 
     For thread synchronisation, the CoreAudio backend will use the
@@ -347,37 +312,6 @@
 
     macOS and iOS applications that use Sokol Audio need to link with
     the AudioToolbox framework.
-
-    THE WASAPI BACKEND
-    ==================
-    The WASAPI backend is automatically selected when compiling on Windows
-    (_WIN32 is defined).
-
-    For thread synchronisation a Win32 critical section is used.
-
-    WASAPI may use a different size for its own streaming buffer then requested,
-    so the base latency may be slightly bigger. The current backend implementation
-    converts the incoming floating point sample values to signed 16-bit
-    integers.
-
-    The required Windows system DLLs are linked with #pragma comment(lib, ...),
-    so you shouldn't need to add additional linker libs in the build process
-    (otherwise this is a bug which should be fixed in sokol_audio.h).
-
-    THE ALSA BACKEND
-    ================
-    The ALSA backend is automatically selected when compiling on Linux
-    ('linux' is defined).
-
-    For thread synchronisation, the pthread_mutex_* functions are used.
-
-    Samples are directly forwarded to ALSA in 32-bit float format, no
-    further conversion is taking place.
-
-    You need to link with the 'asound' library, and the <alsa/asoundlib.h>
-    header must be present (usually both are installed with some sort
-    of ALSA development package).
-
 
     MEMORY ALLOCATION OVERRIDE
     ==========================
@@ -603,7 +537,7 @@ SOKOL_AUDIO_API_DECL int saudio_sample_rate(void);
 SOKOL_AUDIO_API_DECL int saudio_buffer_frames(void);
 /* actual number of channels */
 SOKOL_AUDIO_API_DECL int saudio_channels(void);
-/* return true if audio context is currently suspended (only in WebAudio backend, all other backends return false) */
+/* return true if audio context is currently suspended (returns false on Apple platforms) */
 SOKOL_AUDIO_API_DECL bool saudio_suspended(void);
 /* get current number of frames to fill packet queue */
 SOKOL_AUDIO_API_DECL int saudio_expect(void);
