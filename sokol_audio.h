@@ -480,7 +480,9 @@
 #define SOKOL_AUDIO_INCLUDED (1)
 #include <stddef.h> // size_t
 #include <stdint.h>
-#include <stdbool.h>
+
+/* C89 bool support */
+typedef enum { false, true } bool;
 
 #if defined(SOKOL_API_DECL) && !defined(SOKOL_AUDIO_API_DECL)
 #define SOKOL_AUDIO_API_DECL SOKOL_API_DECL
@@ -493,10 +495,6 @@
 #else
 #define SOKOL_AUDIO_API_DECL extern
 #endif
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 /*

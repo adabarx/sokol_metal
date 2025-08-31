@@ -291,8 +291,10 @@
 */
 #define SOKOL_ARGS_INCLUDED (1)
 #include <stdint.h>
-#include <stdbool.h>
 #include <stddef.h> // size_t
+
+/* C89 bool support */
+typedef enum { false, true } bool;
 
 #if defined(SOKOL_API_DECL) && !defined(SOKOL_ARGS_API_DECL)
 #define SOKOL_ARGS_API_DECL SOKOL_API_DECL
@@ -305,10 +307,6 @@
 #else
 #define SOKOL_ARGS_API_DECL extern
 #endif
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 /*

@@ -31,7 +31,7 @@
     Optionally provide the following defines with your own implementations:
 
     SOKOL_ASSERT(c)             - your own assert macro (default: assert(c))
-    SOKOL_UNREACHABLE()         - a guard macro for unreachable code (default: assert(false))
+    SOKOL_UNREACHABLE()         - a guard macro for unreachable code (default: assert(0))
     SOKOL_GFX_API_DECL          - public function declaration prefix (default: extern)
     SOKOL_API_DECL              - same as SOKOL_GFX_API_DECL
     SOKOL_API_IMPL              - public function implementation prefix (default: -)
@@ -1918,7 +1918,9 @@
 #define SOKOL_GFX_INCLUDED (1)
 #include <stddef.h>     // size_t
 #include <stdint.h>
-#include <stdbool.h>
+
+/* C89 bool support */
+typedef enum { false, true } bool;
 
 #if defined(SOKOL_API_DECL) && !defined(SOKOL_GFX_API_DECL)
 #define SOKOL_GFX_API_DECL SOKOL_API_DECL
@@ -1933,9 +1935,6 @@
 #endif
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /*
     Resource id typedefs:
@@ -1983,13 +1982,8 @@ typedef struct sg_range {
 #pragma warning(disable:4221)   // /W4 only: nonstandard extension used: 'x': cannot be initialized using address of automatic variable 'y'
 #pragma warning(disable:4204)   // VS2015: nonstandard extension used: non-constant aggregate initializer
 #endif
-#if defined(__cplusplus)
-#define SG_RANGE(x) sg_range{ &x, sizeof(x) }
-#define SG_RANGE_REF(x) sg_range{ &x, sizeof(x) }
-#else
 #define SG_RANGE(x) (sg_range){ &x, sizeof(x) }
 #define SG_RANGE_REF(x) &(sg_range){ &x, sizeof(x) }
-#endif
 
 // various compile-time constants in the public API
 enum {
@@ -5152,41 +5146,7 @@ SOKOL_GFX_API_DECL sg_gl_shader_info sg_gl_query_shader_info(sg_shader shd);
 // GL: get internal view resource objects
 SOKOL_GFX_API_DECL sg_gl_view_info sg_gl_query_view_info(sg_view view);
 
-#ifdef __cplusplus
-} // extern "C"
 
-// reference-based equivalents for c++
-inline void sg_setup(const sg_desc& desc) { return sg_setup(&desc); }
-
-inline sg_buffer sg_make_buffer(const sg_buffer_desc& desc) { return sg_make_buffer(&desc); }
-inline sg_image sg_make_image(const sg_image_desc& desc) { return sg_make_image(&desc); }
-inline sg_sampler sg_make_sampler(const sg_sampler_desc& desc) { return sg_make_sampler(&desc); }
-inline sg_shader sg_make_shader(const sg_shader_desc& desc) { return sg_make_shader(&desc); }
-inline sg_pipeline sg_make_pipeline(const sg_pipeline_desc& desc) { return sg_make_pipeline(&desc); }
-inline sg_view sg_make_view(const sg_view_desc& desc) { return sg_make_view(&desc); }
-inline void sg_update_image(sg_image img, const sg_image_data& data) { return sg_update_image(img, &data); }
-
-inline void sg_begin_pass(const sg_pass& pass) { return sg_begin_pass(&pass); }
-inline void sg_apply_bindings(const sg_bindings& bindings) { return sg_apply_bindings(&bindings); }
-inline void sg_apply_uniforms(int ub_slot, const sg_range& data) { return sg_apply_uniforms(ub_slot, &data); }
-
-inline sg_buffer_desc sg_query_buffer_defaults(const sg_buffer_desc& desc) { return sg_query_buffer_defaults(&desc); }
-inline sg_image_desc sg_query_image_defaults(const sg_image_desc& desc) { return sg_query_image_defaults(&desc); }
-inline sg_sampler_desc sg_query_sampler_defaults(const sg_sampler_desc& desc) { return sg_query_sampler_defaults(&desc); }
-inline sg_shader_desc sg_query_shader_defaults(const sg_shader_desc& desc) { return sg_query_shader_defaults(&desc); }
-inline sg_pipeline_desc sg_query_pipeline_defaults(const sg_pipeline_desc& desc) { return sg_query_pipeline_defaults(&desc); }
-inline sg_view_desc sg_query_view_defaults(const sg_view_desc& desc) { return sg_query_view_defaults(&desc); }
-
-inline void sg_init_buffer(sg_buffer buf, const sg_buffer_desc& desc) { return sg_init_buffer(buf, &desc); }
-inline void sg_init_image(sg_image img, const sg_image_desc& desc) { return sg_init_image(img, &desc); }
-inline void sg_init_sampler(sg_sampler smp, const sg_sampler_desc& desc) { return sg_init_sampler(smp, &desc); }
-inline void sg_init_shader(sg_shader shd, const sg_shader_desc& desc) { return sg_init_shader(shd, &desc); }
-inline void sg_init_pipeline(sg_pipeline pip, const sg_pipeline_desc& desc) { return sg_init_pipeline(pip, &desc); }
-inline void sg_init_view(sg_view view, const sg_view_desc& desc) { return sg_init_view(view, &desc); }
-
-inline void sg_update_buffer(sg_buffer buf_id, const sg_range& data) { return sg_update_buffer(buf_id, &data); }
-inline int sg_append_buffer(sg_buffer buf_id, const sg_range& data) { return sg_append_buffer(buf_id, &data); }
-#endif
 #endif // SOKOL_GFX_INCLUDED
 
 // ██ ███    ███ ██████  ██      ███████ ███    ███ ███████ ███    ██ ████████  █████  ████████ ██  ██████  ███    ██
@@ -5223,7 +5183,7 @@ inline int sg_append_buffer(sg_buffer buf_id, const sg_range& data) { return sg_
     #define SOKOL_ASSERT(c) assert(c)
 #endif
 #ifndef SOKOL_UNREACHABLE
-    #define SOKOL_UNREACHABLE SOKOL_ASSERT(false)
+    #define SOKOL_UNREACHABLE SOKOL_ASSERT(0)
 #endif
 
 #ifndef _SOKOL_PRIVATE
@@ -5276,10 +5236,8 @@ inline int sg_append_buffer(sg_buffer buf_id, const sg_range& data) { return sg_
 #endif
 
 // see https://clang.llvm.org/docs/LanguageExtensions.html#automatic-reference-counting
-    #if !defined(__cplusplus)
-        #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
-            #error "sokol_gfx.h requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
-        #endif
+    #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
+        #error "sokol_gfx.h requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
     #endif
     #include <TargetConditionals.h>
     #include <AvailabilityMacros.h>

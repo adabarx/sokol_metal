@@ -28,7 +28,7 @@
     Optionally provide the following defines with your own implementations:
 
         SOKOL_ASSERT(c)             - your own assert macro (default: assert(c))
-        SOKOL_UNREACHABLE()         - a guard macro for unreachable code (default: assert(false))
+        SOKOL_UNREACHABLE()         - a guard macro for unreachable code (default: assert(0))
         SOKOL_WIN32_FORCE_MAIN      - define this on Win32 to add a main() entry point
         SOKOL_WIN32_FORCE_WINMAIN   - define this on Win32 to add a WinMain() entry point (enabled by default unless
                                       SOKOL_WIN32_FORCE_MAIN or SOKOL_NO_ENTRY is defined)
@@ -1294,7 +1294,9 @@
 #define SOKOL_APP_INCLUDED (1)
 #include <stddef.h> // size_t
 #include <stdint.h>
-#include <stdbool.h>
+
+/* C89 bool support */
+typedef enum { false, true } bool;
 
 #if defined(SOKOL_API_DECL) && !defined(SOKOL_APP_API_DECL)
 #define SOKOL_APP_API_DECL SOKOL_API_DECL
@@ -1307,10 +1309,6 @@
 #else
 #define SOKOL_APP_API_DECL extern
 #endif
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 /* misc constants */
@@ -1597,11 +1595,7 @@ typedef struct sapp_range {
 #pragma warning(disable:4221)   /* /W4 only: nonstandard extension used: 'x': cannot be initialized using address of automatic variable 'y' */
 #pragma warning(disable:4204)   /* VS2015: nonstandard extension used: non-constant aggregate initializer */
 #endif
-#if defined(__cplusplus)
-#define SAPP_RANGE(x) sapp_range{ &x, sizeof(x) }
-#else
 #define SAPP_RANGE(x) (sapp_range){ &x, sizeof(x) }
-#endif
 
 /*
     sapp_image_desc
@@ -2033,14 +2027,6 @@ SOKOL_APP_API_DECL const void* sapp_x11_get_display(void);
 /* Android: get native activity handle */
 SOKOL_APP_API_DECL const void* sapp_android_get_native_activity(void);
 
-#ifdef __cplusplus
-} /* extern "C" */
-
-/* reference-based equivalents for C++ */
-inline void sapp_run(const sapp_desc& desc) { return sapp_run(&desc); }
-
-#endif
-
 #endif // SOKOL_APP_INCLUDED
 
 // ██ ███    ███ ██████  ██      ███████ ███    ███ ███████ ███    ██ ████████  █████  ████████ ██  ██████  ███    ██
@@ -2076,11 +2062,9 @@ inline void sapp_run(const sapp_desc& desc) { return sapp_run(&desc); }
 #define _SAPP_PIXELFORMAT_DEPTH_STENCIL (44)
 
 // Apple platforms only for Metal-only build
-#if !defined(__cplusplus)
     #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
         #error "sokol_app.h requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
     #endif
-#endif
 #define _SAPP_APPLE (1)
 #include <TargetConditionals.h>
 #if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
@@ -2112,7 +2096,7 @@ inline void sapp_run(const sapp_desc& desc) { return sapp_run(&desc); }
     #define SOKOL_ASSERT(c) assert(c)
 #endif
 #ifndef SOKOL_UNREACHABLE
-    #define SOKOL_UNREACHABLE SOKOL_ASSERT(false)
+    #define SOKOL_UNREACHABLE SOKOL_ASSERT(0)
 #endif
 
 #ifndef _SOKOL_PRIVATE
@@ -2256,11 +2240,7 @@ inline void sapp_run(const sapp_desc& desc) { return sapp_run(&desc); }
 
 #if defined(_SAPP_APPLE)
     // this is ARC compatible
-    #if defined(__cplusplus)
-        #define _SAPP_CLEAR_ARC_STRUCT(type, item) { item = type(); }
-    #else
-        #define _SAPP_CLEAR_ARC_STRUCT(type, item) { item = (type) { 0 }; }
-    #endif
+    #define _SAPP_CLEAR_ARC_STRUCT(type, item) { item = (type) { 0 }; }
 #else
     #define _SAPP_CLEAR_ARC_STRUCT(type, item) { _sapp_clear(&item, sizeof(item)); }
 #endif
