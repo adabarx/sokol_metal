@@ -117,10 +117,6 @@
 #endif
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
     Plug this function into the 'logger.func' struct item when initializing any of the sokol
     headers. For instance for sokol_audio.h it would look like this:
@@ -132,10 +128,6 @@ extern "C" {
     });
 */
 SOKOL_LOG_API_DECL void slog_func(const char* tag, uint32_t log_level, uint32_t log_item, const char* message, uint32_t line_nr, const char* filename, void* user_data);
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 #endif // SOKOL_LOG_INCLUDED
 
 // ██ ███    ███ ██████  ██      ███████ ███    ███ ███████ ███    ██ ████████  █████  ████████ ██  ██████  ███    ██

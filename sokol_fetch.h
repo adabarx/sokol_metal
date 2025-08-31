@@ -1111,13 +1111,6 @@ SOKOL_FETCH_API_DECL void sfetch_pause(sfetch_handle_t h);
 /* continue a paused request */
 SOKOL_FETCH_API_DECL void sfetch_continue(sfetch_handle_t h);
 
-#ifdef __cplusplus
-} /* extern "C" */
-
-/* reference-based equivalents for c++ */
-inline void sfetch_setup(const sfetch_desc_t& desc) { return sfetch_setup(&desc); }
-inline sfetch_handle_t sfetch_send(const sfetch_request_t& request) { return sfetch_send(&request); }
-
 #endif
 #endif // SOKOL_FETCH_INCLUDED
 
@@ -2214,9 +2207,6 @@ EM_JS(void, sfetch_js_send_get_request, (uint32_t slot_id, const char* path_cstr
 })
 
 /*=== emscripten specific C helper functions =================================*/
-#ifdef __cplusplus
-extern "C" {
-#endif
 void _sfetch_emsc_send_get_request(uint32_t slot_id, _sfetch_item_t* item) {
     if ((item->buffer.ptr == 0) || (item->buffer.size == 0)) {
         item->thread.error_code = SFETCH_ERROR_NO_BUFFER;
@@ -2314,10 +2304,6 @@ EMSCRIPTEN_KEEPALIVE void _sfetch_emsc_failed_other(uint32_t slot_id) {
         }
     }
 }
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
 
 _SOKOL_PRIVATE void _sfetch_request_handler(_sfetch_t* ctx, uint32_t slot_id) {
     _sfetch_item_t* item = _sfetch_pool_item_lookup(&ctx->pool, slot_id);

@@ -355,14 +355,6 @@ SOKOL_ARGS_API_DECL int sargs_num_args(void);
 SOKOL_ARGS_API_DECL const char* sargs_key_at(int index);
 // get value string of argument at index, or empty string
 SOKOL_ARGS_API_DECL const char* sargs_value_at(int index);
-
-#ifdef __cplusplus
-} // extern "C"
-
-// reference-based equivalents for c++
-inline void sargs_setup(const sargs_desc& desc) { return sargs_setup(&desc); }
-
-#endif
 #endif // SOKOL_ARGS_INCLUDED
 
 //--- IMPLEMENTATION -----------------------------------------------------------

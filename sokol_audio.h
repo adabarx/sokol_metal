@@ -608,14 +608,6 @@ SOKOL_AUDIO_API_DECL bool saudio_suspended(void);
 SOKOL_AUDIO_API_DECL int saudio_expect(void);
 /* push sample frames from main thread, returns number of frames actually pushed */
 SOKOL_AUDIO_API_DECL int saudio_push(const float* frames, int num_frames);
-
-#ifdef __cplusplus
-} /* extern "C" */
-
-/* reference-based equivalents for c++ */
-inline void saudio_setup(const saudio_desc& desc) { return saudio_setup(&desc); }
-
-#endif
 #endif // SOKOL_AUDIO_INCLUDED
 
 // ██ ███    ███ ██████  ██      ███████ ███    ███ ███████ ███    ██ ████████  █████  ████████ ██  ██████  ███    ██
@@ -727,9 +719,6 @@ typedef OSStatus _saudio_OSStatus;
 #define _saudio_kAudioFormatFlagIsPacked (kAudioFormatFlagIsPacked)
 
 #else
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 // embedded AudioToolbox declarations
 typedef uint32_t _saudio_AudioFormatID;
@@ -806,11 +795,7 @@ extern _saudio_OSStatus AudioQueueEnqueueBuffer(_saudio_AudioQueueRef inAQ, _sau
 extern _saudio_OSStatus AudioQueueStart(_saudio_AudioQueueRef inAQ, const _saudio_AudioTimeStamp * inStartTime);
 extern _saudio_OSStatus AudioQueueStop(_saudio_AudioQueueRef inAQ, bool inImmediate);
 
-#ifdef __cplusplus
-} // extern "C"
-#endif
-
-#endif // SAUDIO_OSX_USE_SYSTEM_HEADERS
+#endif /* SAUDIO_OSX_USE_SYSTEM_HEADERS */
 
 typedef struct {
     _saudio_AudioQueueRef ca_audio_queue;
@@ -1225,10 +1210,6 @@ EMSCRIPTEN_KEEPALIVE int _saudio_emsc_pull(int num_frames) {
         return 0;
     }
 }
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
 
 /* setup the WebAudio context and attach a ScriptProcessorNode */
 EM_JS(int, saudio_js_init, (int sample_rate, int num_channels, int buffer_size), {
