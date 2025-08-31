@@ -4,15 +4,15 @@
 #if defined(SOKOL_GLCORE)
 #undef SOKOL_GLCORE
 #endif
-#if defined(SOKOL_METAL)
-#undef SOKOL_METAL
-#endif
 #if defined(SOKOL_D3D11)
 #undef SOKOL_D3D11
 #endif
 #if defined(SOKOL_WGPU)
 #undef SOKOL_WGPU
 #endif
-#ifndef SOKOL_DUMMY_BACKEND
-#define SOKOL_DUMMY_BACKEND
+#if defined(SOKOL_DUMMY_BACKEND)
+#undef SOKOL_DUMMY_BACKEND
+#endif
+#ifndef SOKOL_METAL
+#define SOKOL_METAL
 #endif

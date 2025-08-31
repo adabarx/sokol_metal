@@ -99,16 +99,8 @@
 #error "Please include sokol_gfx.h before sokol_glue.h"
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 SOKOL_GLUE_API_DECL sg_environment sglue_environment(void);
 SOKOL_GLUE_API_DECL sg_swapchain sglue_swapchain(void);
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
 #endif /* SOKOL_GLUE_INCLUDED */
 
 /*-- IMPLEMENTATION ----------------------------------------------------------*/

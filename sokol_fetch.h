@@ -922,9 +922,11 @@
         distribution.
 */
 #define SOKOL_FETCH_INCLUDED (1)
-#include <stddef.h> // size_t
+#include <stddef.h> /* size_t */
 #include <stdint.h>
-#include <stdbool.h>
+
+/* C89 bool support */
+typedef enum { false, true } bool;
 
 #if defined(SOKOL_API_DECL) && !defined(SOKOL_FETCH_API_DECL)
 #define SOKOL_FETCH_API_DECL SOKOL_API_DECL
@@ -937,10 +939,6 @@
 #else
 #define SOKOL_FETCH_API_DECL extern
 #endif
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 /*
@@ -971,6 +969,7 @@ extern "C" {
 #define _SFETCH_LOGITEM_XMACRO(item,msg) SFETCH_LOGITEM_##item,
 typedef enum sfetch_log_item_t {
     _SFETCH_LOG_ITEMS
+    _SFETCH_LOG_ITEM_FORCE_U32 = 0x7FFFFFFF
 } sfetch_log_item_t;
 #undef _SFETCH_LOGITEM_XMACRO
 
@@ -982,12 +981,12 @@ typedef enum sfetch_log_item_t {
 */
 typedef struct sfetch_logger_t {
     void (*func)(
-        const char* tag,                // always "sfetch"
-        uint32_t log_level,             // 0=panic, 1=error, 2=warning, 3=info
-        uint32_t log_item_id,           // SFETCH_LOGITEM_*
-        const char* message_or_null,    // a message string, may be nullptr in release mode
-        uint32_t line_nr,               // line number in sokol_fetch.h
-        const char* filename_or_null,   // source filename, may be nullptr in release mode
+        const char* tag,                /* always "sfetch" */
+        uint32_t log_level,             /* 0=panic, 1=error, 2=warning, 3=info */
+        uint32_t log_item_id,           /* SFETCH_LOGITEM_* */
+        const char* message_or_null,    /* a message string, may be nullptr in release mode */
+        uint32_t line_nr,               /* line number in sokol_fetch.h */
+        const char* filename_or_null,   /* source filename, may be nullptr in release mode */
         void* user_data);
     void* user_data;
 } sfetch_logger_t;
@@ -1004,16 +1003,13 @@ typedef struct sfetch_range_t {
     size_t size;
 } sfetch_range_t;
 
-// disabling this for every includer isn't great, but the warnings are also quite pointless
+/* disabling this for every includer isn't great, but the warnings are also quite pointless */
 #if defined(_MSC_VER)
 #pragma warning(disable:4221)   // /W4 only: nonstandard extension used: 'x': cannot be initialized using address of automatic variable 'y'
 #pragma warning(disable:4204)   // VS2015: nonstandard extension used: non-constant aggregate initializer
 #endif
-#if defined(__cplusplus)
-#define SFETCH_RANGE(x) sfetch_range_t{ &x, sizeof(x) }
-#else
+/* C89-only build - use C-style compound literals */
 #define SFETCH_RANGE(x) (sfetch_range_t){ &x, sizeof(x) }
-#endif
 
 /*
     sfetch_allocator_t
@@ -1113,13 +1109,6 @@ SOKOL_FETCH_API_DECL void sfetch_pause(sfetch_handle_t h);
 /* continue a paused request */
 SOKOL_FETCH_API_DECL void sfetch_continue(sfetch_handle_t h);
 
-#ifdef __cplusplus
-} /* extern "C" */
-
-/* reference-based equivalents for c++ */
-inline void sfetch_setup(const sfetch_desc_t& desc) { return sfetch_setup(&desc); }
-inline sfetch_handle_t sfetch_send(const sfetch_request_t& request) { return sfetch_send(&request); }
-
 #endif
 #endif // SOKOL_FETCH_INCLUDED
 
@@ -1175,32 +1164,12 @@ inline sfetch_handle_t sfetch_send(const sfetch_request_t& request) { return sfe
     #define _SOKOL_UNUSED(x) (void)(x)
 #endif
 
-#if defined(__EMSCRIPTEN__)
-    #include <emscripten/emscripten.h>
-    #define _SFETCH_PLATFORM_EMSCRIPTEN (1)
-    #define _SFETCH_PLATFORM_WINDOWS (0)
-    #define _SFETCH_PLATFORM_POSIX (0)
-    #define _SFETCH_HAS_THREADS (0)
-#elif defined(_WIN32)
-    #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
-    #endif
-    #ifndef NOMINMAX
-    #define NOMINMAX
-    #endif
-    #include <windows.h>
-    #define _SFETCH_PLATFORM_WINDOWS (1)
-    #define _SFETCH_PLATFORM_EMSCRIPTEN (0)
-    #define _SFETCH_PLATFORM_POSIX (0)
-    #define _SFETCH_HAS_THREADS (1)
-#else
-    #include <pthread.h>
-    #include <stdio.h>  /* fopen, fread, fseek, fclose */
-    #define _SFETCH_PLATFORM_POSIX (1)
-    #define _SFETCH_PLATFORM_EMSCRIPTEN (0)
-    #define _SFETCH_PLATFORM_WINDOWS (0)
-    #define _SFETCH_HAS_THREADS (1)
-#endif
+#include <pthread.h>
+#include <stdio.h>  /* fopen, fread, fseek, fclose */
+#define _SFETCH_PLATFORM_POSIX (1)
+#define _SFETCH_PLATFORM_EMSCRIPTEN (0)
+#define _SFETCH_PLATFORM_WINDOWS (0)
+#define _SFETCH_HAS_THREADS (1)
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -2236,9 +2205,6 @@ EM_JS(void, sfetch_js_send_get_request, (uint32_t slot_id, const char* path_cstr
 })
 
 /*=== emscripten specific C helper functions =================================*/
-#ifdef __cplusplus
-extern "C" {
-#endif
 void _sfetch_emsc_send_get_request(uint32_t slot_id, _sfetch_item_t* item) {
     if ((item->buffer.ptr == 0) || (item->buffer.size == 0)) {
         item->thread.error_code = SFETCH_ERROR_NO_BUFFER;
@@ -2336,10 +2302,6 @@ EMSCRIPTEN_KEEPALIVE void _sfetch_emsc_failed_other(uint32_t slot_id) {
         }
     }
 }
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
 
 _SOKOL_PRIVATE void _sfetch_request_handler(_sfetch_t* ctx, uint32_t slot_id) {
     _sfetch_item_t* item = _sfetch_pool_item_lookup(&ctx->pool, slot_id);

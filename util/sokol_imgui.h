@@ -590,7 +590,6 @@ inline void simgui_new_frame(const simgui_frame_desc_t& desc) { return simgui_ne
 #include <string.h> // memset
 #include <stdlib.h> // malloc/free
 
-#if defined(__EMSCRIPTEN__) && !defined(SOKOL_DUMMY_BACKEND)
 #include <emscripten.h>
 #endif
 
@@ -2242,11 +2241,10 @@ static const uint8_t _simgui_fs_source_wgsl[630] = {
     0x5f,0x6f,0x75,0x74,0x28,0x66,0x72,0x61,0x67,0x5f,0x63,0x6f,0x6c,0x6f,0x72,0x29,
     0x3b,0x0a,0x7d,0x0a,0x0a,0x00,
 };
-#elif defined(SOKOL_DUMMY_BACKEND)
 static const char* _simgui_vs_source_dummy = "";
 static const char* _simgui_fs_source_dummy = "";
 #else
-#error "Please define one of SOKOL_GLCORE, SOKOL_GLES3, SOKOL_D3D11, SOKOL_METAL, SOKOL_WGPU or SOKOL_DUMMY_BACKEND!"
+#error "This Metal-only build requires SOKOL_METAL!"
 #endif
 
 #if !defined(SOKOL_IMGUI_NO_SOKOL_APP)
@@ -2261,7 +2259,6 @@ static const char* _simgui_get_clipboard(ImGuiContext* ctx) {
 }
 #endif
 
-#if defined(__EMSCRIPTEN__) && !defined(SOKOL_DUMMY_BACKEND)
 EM_JS(int, simgui_js_is_osx, (void), {
     if (navigator.userAgent.includes('Macintosh')) {
         return 1;
@@ -2345,7 +2342,6 @@ static void _simgui_free(void* ptr) {
 }
 
 static bool _simgui_is_osx(void) {
-    #if defined(SOKOL_DUMMY_BACKEND)
         return false;
     #elif defined(__EMSCRIPTEN__)
         return simgui_js_is_osx();

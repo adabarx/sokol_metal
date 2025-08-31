@@ -291,8 +291,10 @@
 */
 #define SOKOL_ARGS_INCLUDED (1)
 #include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h> // size_t
+#include <stddef.h> /* size_t */
+
+/* C89 bool support */
+typedef enum { false, true } bool;
 
 #if defined(SOKOL_API_DECL) && !defined(SOKOL_ARGS_API_DECL)
 #define SOKOL_ARGS_API_DECL SOKOL_API_DECL
@@ -305,10 +307,6 @@
 #else
 #define SOKOL_ARGS_API_DECL extern
 #endif
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 /*
@@ -333,13 +331,13 @@ typedef struct sargs_desc {
     sargs_allocator allocator;
 } sargs_desc;
 
-// setup sokol-args
+/* setup sokol-args */
 SOKOL_ARGS_API_DECL void sargs_setup(const sargs_desc* desc);
-// shutdown sokol-args
+/* shutdown sokol-args */
 SOKOL_ARGS_API_DECL void sargs_shutdown(void);
-// true between sargs_setup() and sargs_shutdown()
+/* true between sargs_setup() and sargs_shutdown() */
 SOKOL_ARGS_API_DECL bool sargs_isvalid(void);
-// test if an argument exists by key name
+/* test if an argument exists by key name */
 SOKOL_ARGS_API_DECL bool sargs_exists(const char* key);
 // get value by key name, return empty string if key doesn't exist or an existing key has no value
 SOKOL_ARGS_API_DECL const char* sargs_value(const char* key);
@@ -357,14 +355,6 @@ SOKOL_ARGS_API_DECL int sargs_num_args(void);
 SOKOL_ARGS_API_DECL const char* sargs_key_at(int index);
 // get value string of argument at index, or empty string
 SOKOL_ARGS_API_DECL const char* sargs_value_at(int index);
-
-#ifdef __cplusplus
-} // extern "C"
-
-// reference-based equivalents for c++
-inline void sargs_setup(const sargs_desc& desc) { return sargs_setup(&desc); }
-
-#endif
 #endif // SOKOL_ARGS_INCLUDED
 
 //--- IMPLEMENTATION -----------------------------------------------------------
@@ -378,9 +368,7 @@ inline void sargs_setup(const sargs_desc& desc) { return sargs_setup(&desc); }
 #include <string.h> // memset, strcmp
 #include <stdlib.h> // malloc, free
 
-#if defined(__EMSCRIPTEN__)
-#include <emscripten/emscripten.h>
-#endif
+
 
 #ifndef SOKOL_API_IMPL
     #define SOKOL_API_IMPL
@@ -678,60 +666,6 @@ _SOKOL_PRIVATE bool _sargs_parse_cargs(int argc, const char** argv) {
 }
 
 //-- EMSCRIPTEN IMPLEMENTATION -------------------------------------------------
-#if defined(__EMSCRIPTEN__)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if defined(EM_JS_DEPS)
-EM_JS_DEPS(sokol_audio, "$withStackSave,$stringToUTF8OnStack")
-#endif
-
-EMSCRIPTEN_KEEPALIVE void _sargs_add_kvp(const char* key, const char* val) {
-    SOKOL_ASSERT(_sargs.valid && key && val);
-    if (_sargs.num_args >= _sargs.max_args) {
-        return;
-    }
-
-    /* copy key string */
-    char c;
-    _sargs.args[_sargs.num_args].key = _sargs.buf_pos;
-    const char* ptr = key;
-    while (0 != (c = *ptr++)) {
-        _sargs_putc(c);
-    }
-    _sargs_putc(0);
-
-    // copy value string
-    _sargs.args[_sargs.num_args].val = _sargs.buf_pos;
-    ptr = val;
-    while (0 != (c = *ptr++)) {
-        _sargs_putc(c);
-    }
-    _sargs_putc(0);
-
-    _sargs.num_args++;
-}
-#ifdef __cplusplus
-} // extern "C"
-#endif
-
-// JS function to extract arguments from the page URL
-EM_JS(void, sargs_js_parse_url, (void), {
-    const params = new URLSearchParams(window.location.search).entries();
-    for (let p = params.next(); !p.done; p = params.next()) {
-        const key = p.value[0];
-        const val = p.value[1];
-        withStackSave(() => {
-            const key_cstr = stringToUTF8OnStack(key);
-            const val_cstr = stringToUTF8OnStack(val);
-            __sargs_add_kvp(key_cstr, val_cstr)
-        });
-    }
-})
-
-#endif // EMSCRIPTEN
 
 //== PUBLIC IMPLEMENTATION FUNCTIONS ===========================================
 SOKOL_API_IMPL void sargs_setup(const sargs_desc* desc) {

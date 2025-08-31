@@ -117,10 +117,6 @@
 #endif
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*
     Plug this function into the 'logger.func' struct item when initializing any of the sokol
     headers. For instance for sokol_audio.h it would look like this:
@@ -132,11 +128,7 @@ extern "C" {
     });
 */
 SOKOL_LOG_API_DECL void slog_func(const char* tag, uint32_t log_level, uint32_t log_item, const char* message, uint32_t line_nr, const char* filename, void* user_data);
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
-#endif // SOKOL_LOG_INCLUDED
+#endif /* SOKOL_LOG_INCLUDED */
 
 // ██ ███    ███ ██████  ██      ███████ ███    ███ ███████ ███    ██ ████████  █████  ████████ ██  ██████  ███    ██
 // ██ ████  ████ ██   ██ ██      ██      ████  ████ ██      ████   ██    ██    ██   ██    ██    ██ ██    ██ ████   ██
@@ -173,40 +165,14 @@ SOKOL_LOG_API_DECL void slog_func(const char* tag, uint32_t log_level, uint32_t 
     #define _SOKOL_UNUSED(x) (void)(x)
 #endif
 
-// platform detection
-#if defined(__APPLE__)
-    #define _SLOG_APPLE (1)
-#elif defined(__EMSCRIPTEN__)
-    #define _SLOG_EMSCRIPTEN (1)
-#elif defined(_WIN32)
-    #define _SLOG_WINDOWS (1)
-#elif defined(__ANDROID__)
-    #define _SLOG_ANDROID (1)
-#elif defined(__linux__) || defined(__unix__)
-    #define _SLOG_LINUX (1)
-#else
-#error "sokol_log.h: unknown platform"
-#endif
+// Apple platform for Metal-only build
+#define _SLOG_APPLE (1)
 
 #include <stdlib.h> // abort
 #include <stdio.h>  // fputs
 #include <stddef.h> // size_t
 
-#if defined(_SLOG_EMSCRIPTEN)
-#include <emscripten/emscripten.h>
-#elif defined(_SLOG_WINDOWS)
-#ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-    #define NOMINMAX
-#endif
-#include <windows.h>
-#elif defined(_SLOG_ANDROID)
-#include <android/log.h>
-#elif defined(_SLOG_LINUX) || defined(_SLOG_APPLE)
 #include <syslog.h>
-#endif
 
 // size of line buffer (on stack!) in bytes including terminating zero
 #define _SLOG_LINE_LENGTH (512)
@@ -236,17 +202,7 @@ _SOKOL_PRIVATE char* _slog_itoa(uint32_t x, char* buf, size_t buf_size) {
     return p;
 }
 
-#if defined(_SLOG_EMSCRIPTEN)
-EM_JS(void, slog_js_log, (uint32_t level, const char* c_str), {
-    const str = UTF8ToString(c_str);
-    switch (level) {
-        case 0: console.error(str); break;
-        case 1: console.error(str); break;
-        case 2: console.warn(str); break;
-        default: console.info(str); break;
-    }
-})
-#endif
+
 
 SOKOL_API_IMPL void slog_func(const char* tag, uint32_t log_level, uint32_t log_item, const char* message, uint32_t line_nr, const char* filename, void* user_data) {
     _SOKOL_UNUSED(user_data);
@@ -308,25 +264,9 @@ SOKOL_API_IMPL void slog_func(const char* tag, uint32_t log_level, uint32_t log_
     }
 
     // print to stderr?
-    #if defined(_SLOG_LINUX) || defined(_SLOG_WINDOWS) || defined(_SLOG_APPLE)
-        fputs(line_buf, stderr);
-    #endif
+    fputs(line_buf, stderr);
 
-    // platform specific logging calls
-    #if defined(_SLOG_WINDOWS)
-        OutputDebugStringA(line_buf);
-    #elif defined(_SLOG_ANDROID)
-        int prio;
-        switch (log_level) {
-            case 0: prio = ANDROID_LOG_FATAL; break;
-            case 1: prio = ANDROID_LOG_ERROR; break;
-            case 2: prio = ANDROID_LOG_WARN; break;
-            default: prio = ANDROID_LOG_INFO; break;
-        }
-        __android_log_write(prio, "SOKOL", line_buf);
-    #elif defined(_SLOG_EMSCRIPTEN)
-        slog_js_log(log_level, line_buf);
-    #endif
+    // Apple platform logging (already handled by fputs above)
     if (0 == log_level) {
         abort();
     }

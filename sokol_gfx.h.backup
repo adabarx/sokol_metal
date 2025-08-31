@@ -15,23 +15,31 @@
     before you include this file in *one* C or C++ file to create the
     implementation.
 
-    In the same place define the Metal backend:
+    In the same place define one of the following to select the rendering
+    backend:
+        #define SOKOL_GLCORE
+        #define SOKOL_GLES3
+        #define SOKOL_D3D11
         #define SOKOL_METAL
+        #define SOKOL_WGPU
+        #define SOKOL_DUMMY_BACKEND
 
-    I.e. it should look like this:
+    I.e. for the desktop GL it should look like this:
 
     #include ...
     #include ...
     #define SOKOL_IMPL
-    #define SOKOL_METAL
+    #define SOKOL_GLCORE
     #include "sokol_gfx.h"
 
-    This Metal-only build statically targets macOS and iOS with Metal.
+    The dummy backend replaces the platform-specific backend code with empty
+    stub functions. This is useful for writing tests that need to run on the
+    command line.
 
     Optionally provide the following defines with your own implementations:
 
     SOKOL_ASSERT(c)             - your own assert macro (default: assert(c))
-    SOKOL_UNREACHABLE()         - a guard macro for unreachable code (default: assert(0))
+    SOKOL_UNREACHABLE()         - a guard macro for unreachable code (default: assert(false))
     SOKOL_GFX_API_DECL          - public function declaration prefix (default: extern)
     SOKOL_API_DECL              - same as SOKOL_GFX_API_DECL
     SOKOL_API_IMPL              - public function implementation prefix (default: -)
@@ -1916,11 +1924,9 @@
         distribution.
 */
 #define SOKOL_GFX_INCLUDED (1)
-#include <stddef.h>     /* size_t */
+#include <stddef.h>     // size_t
 #include <stdint.h>
-
-/* C89 bool support */
-typedef enum { false, true } bool;
+#include <stdbool.h>
 
 #if defined(SOKOL_API_DECL) && !defined(SOKOL_GFX_API_DECL)
 #define SOKOL_GFX_API_DECL SOKOL_API_DECL
@@ -1935,6 +1941,9 @@ typedef enum { false, true } bool;
 #endif
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
     Resource id typedefs:
@@ -1977,13 +1986,18 @@ typedef struct sg_range {
     size_t size;
 } sg_range;
 
-/* disabling this for every includer isn't great, but the warnings are also quite pointless */
+// disabling this for every includer isn't great, but the warnings are also quite pointless
 #if defined(_MSC_VER)
 #pragma warning(disable:4221)   // /W4 only: nonstandard extension used: 'x': cannot be initialized using address of automatic variable 'y'
 #pragma warning(disable:4204)   // VS2015: nonstandard extension used: non-constant aggregate initializer
 #endif
+#if defined(__cplusplus)
+#define SG_RANGE(x) sg_range{ &x, sizeof(x) }
+#define SG_RANGE_REF(x) sg_range{ &x, sizeof(x) }
+#else
 #define SG_RANGE(x) (sg_range){ &x, sizeof(x) }
 #define SG_RANGE_REF(x) &(sg_range){ &x, sizeof(x) }
+#endif
 
 // various compile-time constants in the public API
 enum {
@@ -1998,7 +2012,7 @@ enum {
     SG_MAX_UNIFORMBLOCK_BINDSLOTS = 8,
     SG_MAX_VIEW_BINDSLOTS = 28,
     SG_MAX_SAMPLER_BINDSLOTS = 16,
-    SG_MAX_TEXTURE_SAMPLER_PAIRS = 16
+    SG_MAX_TEXTURE_SAMPLER_PAIRS = 16,
 };
 
 /*
@@ -2022,7 +2036,7 @@ typedef enum sg_backend {
     SG_BACKEND_METAL_MACOS,
     SG_BACKEND_METAL_SIMULATOR,
     SG_BACKEND_WGPU,
-    SG_BACKEND_DUMMY
+    SG_BACKEND_DUMMY,
 } sg_backend;
 
 /*
@@ -2318,7 +2332,7 @@ typedef enum sg_sampler_type {
     SG_SAMPLERTYPE_NONFILTERING,
     SG_SAMPLERTYPE_COMPARISON,
     _SG_SAMPLERTYPE_NUM,
-    _SG_SAMPLERTYPE_FORCE_U32
+    _SG_SAMPLERTYPE_FORCE_U32,
 } sg_sampler_type;
 
 /*
@@ -3538,7 +3552,7 @@ typedef enum sg_shader_stage {
     SG_SHADERSTAGE_VERTEX,
     SG_SHADERSTAGE_FRAGMENT,
     SG_SHADERSTAGE_COMPUTE,
-    _SG_SHADERSTAGE_FORCE_U32 = 0x7FFFFFFF
+    _SG_SHADERSTAGE_FORCE_U32 = 0x7FFFFFFF,
 } sg_shader_stage;
 
 typedef struct sg_shader_function {
@@ -3554,7 +3568,7 @@ typedef enum sg_shader_attr_base_type {
     SG_SHADERATTRBASETYPE_FLOAT,
     SG_SHADERATTRBASETYPE_SINT,
     SG_SHADERATTRBASETYPE_UINT,
-    _SG_SHADERATTRBASETYPE_FORCE_U32 = 0x7FFFFFFF
+    _SG_SHADERATTRBASETYPE_FORCE_U32 = 0x7FFFFFFF,
 } sg_shader_attr_base_type;
 
 typedef struct sg_shader_vertex_attr {
@@ -4636,7 +4650,6 @@ typedef struct sg_frame_stats {
 #define _SG_LOGITEM_XMACRO(item,msg) SG_LOGITEM_##item,
 typedef enum sg_log_item {
     _SG_LOG_ITEMS
-    _SG_LOG_ITEM_FORCE_U32 = 0x7FFFFFFF
 } sg_log_item;
 #undef _SG_LOGITEM_XMACRO
 
@@ -5147,7 +5160,41 @@ SOKOL_GFX_API_DECL sg_gl_shader_info sg_gl_query_shader_info(sg_shader shd);
 // GL: get internal view resource objects
 SOKOL_GFX_API_DECL sg_gl_view_info sg_gl_query_view_info(sg_view view);
 
+#ifdef __cplusplus
+} // extern "C"
 
+// reference-based equivalents for c++
+inline void sg_setup(const sg_desc& desc) { return sg_setup(&desc); }
+
+inline sg_buffer sg_make_buffer(const sg_buffer_desc& desc) { return sg_make_buffer(&desc); }
+inline sg_image sg_make_image(const sg_image_desc& desc) { return sg_make_image(&desc); }
+inline sg_sampler sg_make_sampler(const sg_sampler_desc& desc) { return sg_make_sampler(&desc); }
+inline sg_shader sg_make_shader(const sg_shader_desc& desc) { return sg_make_shader(&desc); }
+inline sg_pipeline sg_make_pipeline(const sg_pipeline_desc& desc) { return sg_make_pipeline(&desc); }
+inline sg_view sg_make_view(const sg_view_desc& desc) { return sg_make_view(&desc); }
+inline void sg_update_image(sg_image img, const sg_image_data& data) { return sg_update_image(img, &data); }
+
+inline void sg_begin_pass(const sg_pass& pass) { return sg_begin_pass(&pass); }
+inline void sg_apply_bindings(const sg_bindings& bindings) { return sg_apply_bindings(&bindings); }
+inline void sg_apply_uniforms(int ub_slot, const sg_range& data) { return sg_apply_uniforms(ub_slot, &data); }
+
+inline sg_buffer_desc sg_query_buffer_defaults(const sg_buffer_desc& desc) { return sg_query_buffer_defaults(&desc); }
+inline sg_image_desc sg_query_image_defaults(const sg_image_desc& desc) { return sg_query_image_defaults(&desc); }
+inline sg_sampler_desc sg_query_sampler_defaults(const sg_sampler_desc& desc) { return sg_query_sampler_defaults(&desc); }
+inline sg_shader_desc sg_query_shader_defaults(const sg_shader_desc& desc) { return sg_query_shader_defaults(&desc); }
+inline sg_pipeline_desc sg_query_pipeline_defaults(const sg_pipeline_desc& desc) { return sg_query_pipeline_defaults(&desc); }
+inline sg_view_desc sg_query_view_defaults(const sg_view_desc& desc) { return sg_query_view_defaults(&desc); }
+
+inline void sg_init_buffer(sg_buffer buf, const sg_buffer_desc& desc) { return sg_init_buffer(buf, &desc); }
+inline void sg_init_image(sg_image img, const sg_image_desc& desc) { return sg_init_image(img, &desc); }
+inline void sg_init_sampler(sg_sampler smp, const sg_sampler_desc& desc) { return sg_init_sampler(smp, &desc); }
+inline void sg_init_shader(sg_shader shd, const sg_shader_desc& desc) { return sg_init_shader(shd, &desc); }
+inline void sg_init_pipeline(sg_pipeline pip, const sg_pipeline_desc& desc) { return sg_init_pipeline(pip, &desc); }
+inline void sg_init_view(sg_view view, const sg_view_desc& desc) { return sg_init_view(view, &desc); }
+
+inline void sg_update_buffer(sg_buffer buf_id, const sg_range& data) { return sg_update_buffer(buf_id, &data); }
+inline int sg_append_buffer(sg_buffer buf_id, const sg_range& data) { return sg_append_buffer(buf_id, &data); }
+#endif
 #endif // SOKOL_GFX_INCLUDED
 
 // ██ ███    ███ ██████  ██      ███████ ███    ███ ███████ ███    ██ ████████  █████  ████████ ██  ██████  ███    ██
@@ -5184,7 +5231,7 @@ SOKOL_GFX_API_DECL sg_gl_view_info sg_gl_query_view_info(sg_view view);
     #define SOKOL_ASSERT(c) assert(c)
 #endif
 #ifndef SOKOL_UNREACHABLE
-    #define SOKOL_UNREACHABLE SOKOL_ASSERT(0)
+    #define SOKOL_UNREACHABLE SOKOL_ASSERT(false)
 #endif
 
 #ifndef _SOKOL_PRIVATE
@@ -5236,9 +5283,12 @@ SOKOL_GFX_API_DECL sg_gl_view_info sg_gl_query_view_info(sg_view view);
 #pragma warning(disable:4055)   // 'type cast': from data pointer
 #endif
 
-// see https://clang.llvm.org/docs/LanguageExtensions.html#automatic-reference-counting
-    #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
-        #error "sokol_gfx.h requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
+#if defined(SOKOL_METAL)
+    // see https://clang.llvm.org/docs/LanguageExtensions.html#automatic-reference-counting
+    #if !defined(__cplusplus)
+        #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
+            #error "sokol_gfx.h requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
+        #endif
     #endif
     #include <TargetConditionals.h>
     #include <AvailabilityMacros.h>
@@ -5346,7 +5396,7 @@ enum {
     _SG_MAX_STORAGEBUFFER_BINDINGS_PER_STAGE = 8,
     _SG_MAX_STORAGEIMAGE_BINDINGS_PER_STAGE = 4,
     _SG_MAX_TEXTURE_BINDINGS_PER_STAGE = 16,
-    _SG_MAX_UNIFORMBLOCK_BINDINGS_PER_STAGE = 8
+    _SG_MAX_UNIFORMBLOCK_BINDINGS_PER_STAGE = 8,
 };
 
 // fixed-size string
@@ -5718,6 +5768,71 @@ typedef struct {
     sg_frame_stats prev_stats;
     #if defined(SOKOL_METAL)
     _sg_mtl_backend_t mtl;
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    // dummy backend doesn't need state
+    #endif
+    #if defined(SOKOL_TRACE_HOOKS)
+    sg_trace_hooks hooks;
+    #endif
+    _sg_commit_listeners_t commit_listeners;
+} _sg_state_t;
+static _sg_state_t _sg;
+
+// ██       ██████   ██████   ██████  ██ ███    ██  ██████
+// ██      ██    ██ ██       ██       ██ ████   ██ ██
+// ██      ██    ██ ██   ███ ██   ███ ██ ██ ██  ██ ██   ███
+// ██      ██    ██ ██    ██ ██    ██ ██ ██  ██ ██ ██    ██
+// ███████  ██████   ██████   ██████  ██ ██   ████  ██████
+//
+// >>logging
+#if defined(SOKOL_DEBUG)
+#define _SG_LOGITEM_XMACRO(item,msg) #item ": " msg,
+static const char* _sg_log_messages[] = {
+    _SG_LOG_ITEMS
+};
+#undef _SG_LOGITEM_XMACRO
+#endif // SOKOL_DEBUG
+
+#define _SG_PANIC(code) _sg_log(SG_LOGITEM_ ##code, 0, 0, __LINE__)
+#define _SG_ERROR(code) _sg_log(SG_LOGITEM_ ##code, 1, 0, __LINE__)
+#define _SG_WARN(code) _sg_log(SG_LOGITEM_ ##code, 2, 0, __LINE__)
+#define _SG_INFO(code) _sg_log(SG_LOGITEM_ ##code, 3, 0, __LINE__)
+#define _SG_LOGMSG(code,msg) _sg_log(SG_LOGITEM_ ##code, 3, msg, __LINE__)
+#define _SG_VALIDATE(cond,code) if (!(cond)){ _sg.validate_error = SG_LOGITEM_ ##code; _sg_log(SG_LOGITEM_ ##code, 1, 0, __LINE__); }
+
+static void _sg_log(sg_log_item log_item, uint32_t log_level, const char* msg, uint32_t line_nr) {
+    if (_sg.desc.logger.func) {
+        const char* filename = 0;
+        #if defined(SOKOL_DEBUG)
+            filename = __FILE__;
+            if (0 == msg) {
+                msg = _sg_log_messages[log_item];
+            }
+        #endif
+        _sg.desc.logger.func("sg", log_level, (uint32_t)log_item, msg, line_nr, filename, _sg.desc.logger.user_data);
+    } else {
+        // for log level PANIC it would be 'undefined behaviour' to continue
+        if (log_level == 0) {
+            abort();
+        }
+    }
+}
+
+// ███    ███ ███████ ███    ███  ██████  ██████  ██    ██
+// ████  ████ ██      ████  ████ ██    ██ ██   ██  ██  ██
+// ██ ████ ██ █████   ██ ████ ██ ██    ██ ██████    ████
+// ██  ██  ██ ██      ██  ██  ██ ██    ██ ██   ██    ██
+// ██      ██ ███████ ██      ██  ██████  ██   ██    ██
+//
+// >>memory
+
+// a helper macro to clear a struct with potentially ARC'ed ObjC references
+#if defined(SOKOL_METAL)
+    #if defined(__cplusplus)
+        #define _SG_CLEAR_ARC_STRUCT(type, item) { item = type(); }
+    #else
+        #define _SG_CLEAR_ARC_STRUCT(type, item) { item = (type) { 0 }; }
+    #endif
 #else
     #define _SG_CLEAR_ARC_STRUCT(type, item) { _sg_clear(&item, sizeof(item)); }
 #endif
@@ -7106,6 +7221,197 @@ _SOKOL_PRIVATE sg_pass_action _sg_pass_action_defaults(const sg_pass_action* act
 // ██████   ██████  ██      ██ ██      ██    ██        ██████  ██   ██  ██████ ██   ██ ███████ ██   ████ ██████
 //
 // >>dummy backend
+#if defined(SOKOL_DUMMY_BACKEND)
+
+_SOKOL_PRIVATE void _sg_dummy_setup_backend(const sg_desc* desc) {
+    SOKOL_ASSERT(desc);
+    _SOKOL_UNUSED(desc);
+    _sg.backend = SG_BACKEND_DUMMY;
+    for (int i = SG_PIXELFORMAT_R8; i < SG_PIXELFORMAT_BC1_RGBA; i++) {
+        _sg.formats[i].sample = true;
+        _sg.formats[i].filter = true;
+        _sg.formats[i].render = true;
+        _sg.formats[i].blend = true;
+        _sg.formats[i].msaa = true;
+    }
+    _sg.formats[SG_PIXELFORMAT_DEPTH].depth = true;
+    _sg.formats[SG_PIXELFORMAT_DEPTH_STENCIL].depth = true;
+}
+
+_SOKOL_PRIVATE void _sg_dummy_discard_backend(void) {
+    // empty
+}
+
+_SOKOL_PRIVATE void _sg_dummy_reset_state_cache(void) {
+    // empty
+}
+
+_SOKOL_PRIVATE sg_resource_state _sg_dummy_create_buffer(_sg_buffer_t* buf, const sg_buffer_desc* desc) {
+    SOKOL_ASSERT(buf && desc);
+    _SOKOL_UNUSED(buf);
+    _SOKOL_UNUSED(desc);
+    return SG_RESOURCESTATE_VALID;
+}
+
+_SOKOL_PRIVATE void _sg_dummy_discard_buffer(_sg_buffer_t* buf) {
+    SOKOL_ASSERT(buf);
+    _SOKOL_UNUSED(buf);
+}
+
+_SOKOL_PRIVATE sg_resource_state _sg_dummy_create_image(_sg_image_t* img, const sg_image_desc* desc) {
+    SOKOL_ASSERT(img && desc);
+    _SOKOL_UNUSED(img);
+    _SOKOL_UNUSED(desc);
+    return SG_RESOURCESTATE_VALID;
+}
+
+_SOKOL_PRIVATE void _sg_dummy_discard_image(_sg_image_t* img) {
+    SOKOL_ASSERT(img);
+    _SOKOL_UNUSED(img);
+}
+
+_SOKOL_PRIVATE sg_resource_state _sg_dummy_create_sampler(_sg_sampler_t* smp, const sg_sampler_desc* desc) {
+    SOKOL_ASSERT(smp && desc);
+    _SOKOL_UNUSED(smp);
+    _SOKOL_UNUSED(desc);
+    return SG_RESOURCESTATE_VALID;
+}
+
+_SOKOL_PRIVATE void _sg_dummy_discard_sampler(_sg_sampler_t* smp) {
+    SOKOL_ASSERT(smp);
+    _SOKOL_UNUSED(smp);
+}
+
+_SOKOL_PRIVATE sg_resource_state _sg_dummy_create_shader(_sg_shader_t* shd, const sg_shader_desc* desc) {
+    SOKOL_ASSERT(shd && desc);
+    _SOKOL_UNUSED(shd);
+    _SOKOL_UNUSED(desc);
+    return SG_RESOURCESTATE_VALID;
+}
+
+_SOKOL_PRIVATE void _sg_dummy_discard_shader(_sg_shader_t* shd) {
+    SOKOL_ASSERT(shd);
+    _SOKOL_UNUSED(shd);
+}
+
+_SOKOL_PRIVATE sg_resource_state _sg_dummy_create_pipeline(_sg_pipeline_t* pip, const sg_pipeline_desc* desc) {
+    SOKOL_ASSERT(pip && desc);
+    _SOKOL_UNUSED(pip);
+    _SOKOL_UNUSED(desc);
+    return SG_RESOURCESTATE_VALID;
+}
+
+_SOKOL_PRIVATE void _sg_dummy_discard_pipeline(_sg_pipeline_t* pip) {
+    SOKOL_ASSERT(pip);
+    _SOKOL_UNUSED(pip);
+}
+
+_SOKOL_PRIVATE sg_resource_state _sg_dummy_create_view(_sg_view_t* view, const sg_view_desc* desc) {
+    SOKOL_ASSERT(view && desc);
+    _SOKOL_UNUSED(view);
+    _SOKOL_UNUSED(desc);
+    return SG_RESOURCESTATE_VALID;
+}
+
+_SOKOL_PRIVATE void _sg_dummy_discard_view(_sg_view_t* view) {
+    SOKOL_ASSERT(view);
+    _SOKOL_UNUSED(view);
+}
+
+_SOKOL_PRIVATE void _sg_dummy_begin_pass(const sg_pass* pass, const _sg_attachments_ptrs_t* atts) {
+    SOKOL_ASSERT(pass && atts);
+    _SOKOL_UNUSED(pass);
+    _SOKOL_UNUSED(atts);
+}
+
+_SOKOL_PRIVATE void _sg_dummy_end_pass(const _sg_attachments_ptrs_t* atts) {
+    SOKOL_ASSERT(atts);
+    _SOKOL_UNUSED(atts);
+}
+
+_SOKOL_PRIVATE void _sg_dummy_commit(void) {
+    // empty
+}
+
+_SOKOL_PRIVATE void _sg_dummy_apply_viewport(int x, int y, int w, int h, bool origin_top_left) {
+    _SOKOL_UNUSED(x);
+    _SOKOL_UNUSED(y);
+    _SOKOL_UNUSED(w);
+    _SOKOL_UNUSED(h);
+    _SOKOL_UNUSED(origin_top_left);
+}
+
+_SOKOL_PRIVATE void _sg_dummy_apply_scissor_rect(int x, int y, int w, int h, bool origin_top_left) {
+    _SOKOL_UNUSED(x);
+    _SOKOL_UNUSED(y);
+    _SOKOL_UNUSED(w);
+    _SOKOL_UNUSED(h);
+    _SOKOL_UNUSED(origin_top_left);
+}
+
+_SOKOL_PRIVATE void _sg_dummy_apply_pipeline(_sg_pipeline_t* pip) {
+    SOKOL_ASSERT(pip);
+    _SOKOL_UNUSED(pip);
+}
+
+_SOKOL_PRIVATE bool _sg_dummy_apply_bindings(_sg_bindings_ptrs_t* bnd) {
+    SOKOL_ASSERT(bnd);
+    SOKOL_ASSERT(bnd->pip);
+    _SOKOL_UNUSED(bnd);
+    return true;
+}
+
+_SOKOL_PRIVATE void _sg_dummy_apply_uniforms(int ub_slot, const sg_range* data) {
+    _SOKOL_UNUSED(ub_slot);
+    _SOKOL_UNUSED(data);
+}
+
+_SOKOL_PRIVATE void _sg_dummy_draw(int base_element, int num_elements, int num_instances) {
+    _SOKOL_UNUSED(base_element);
+    _SOKOL_UNUSED(num_elements);
+    _SOKOL_UNUSED(num_instances);
+}
+
+_SOKOL_PRIVATE void _sg_dummy_dispatch(int num_groups_x, int num_groups_y, int num_groups_z) {
+    _SOKOL_UNUSED(num_groups_x);
+    _SOKOL_UNUSED(num_groups_y);
+    _SOKOL_UNUSED(num_groups_z);
+}
+
+_SOKOL_PRIVATE void _sg_dummy_update_buffer(_sg_buffer_t* buf, const sg_range* data) {
+    SOKOL_ASSERT(buf && data && data->ptr && (data->size > 0));
+    _SOKOL_UNUSED(data);
+    if (++buf->cmn.active_slot >= buf->cmn.num_slots) {
+        buf->cmn.active_slot = 0;
+    }
+}
+
+_SOKOL_PRIVATE bool _sg_dummy_append_buffer(_sg_buffer_t* buf, const sg_range* data, bool new_frame) {
+    SOKOL_ASSERT(buf && data && data->ptr && (data->size > 0));
+    _SOKOL_UNUSED(data);
+    if (new_frame) {
+        if (++buf->cmn.active_slot >= buf->cmn.num_slots) {
+            buf->cmn.active_slot = 0;
+        }
+    }
+    return true;
+}
+
+_SOKOL_PRIVATE void _sg_dummy_update_image(_sg_image_t* img, const sg_image_data* data) {
+    SOKOL_ASSERT(img && data);
+    _SOKOL_UNUSED(data);
+    if (++img->cmn.active_slot >= img->cmn.num_slots) {
+        img->cmn.active_slot = 0;
+    }
+}
+
+//  ██████  ██████  ███████ ███    ██  ██████  ██          ██████   █████   ██████ ██   ██ ███████ ███    ██ ██████
+// ██    ██ ██   ██ ██      ████   ██ ██       ██          ██   ██ ██   ██ ██      ██  ██  ██      ████   ██ ██   ██
+// ██    ██ ██████  █████   ██ ██  ██ ██   ███ ██          ██████  ███████ ██      █████   █████   ██ ██  ██ ██   ██
+// ██    ██ ██      ██      ██  ██ ██ ██    ██ ██          ██   ██ ██   ██ ██      ██  ██  ██      ██  ██ ██ ██   ██
+//  ██████  ██      ███████ ██   ████  ██████  ███████     ██████  ██   ██  ██████ ██   ██ ███████ ██   ████ ██████
+//
+// >>metal backend
 #elif defined(SOKOL_METAL)
 
 #if __has_feature(objc_arc)
@@ -9205,115 +9511,269 @@ _SOKOL_PRIVATE void _sg_mtl_pop_debug_group(void) {
 // >>webgpu
 // >>generic backend
 static inline void _sg_setup_backend(const sg_desc* desc) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_setup_backend(desc);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_setup_backend(desc);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_discard_backend(void) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_discard_backend();
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_discard_backend();
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_reset_state_cache(void) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_reset_state_cache();
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_reset_state_cache();
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline sg_resource_state _sg_create_buffer(_sg_buffer_t* buf, const sg_buffer_desc* desc) {
+    #if defined(SOKOL_METAL)
     return _sg_mtl_create_buffer(buf, desc);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    return _sg_dummy_create_buffer(buf, desc);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_discard_buffer(_sg_buffer_t* buf) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_discard_buffer(buf);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_discard_buffer(buf);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline sg_resource_state _sg_create_image(_sg_image_t* img, const sg_image_desc* desc) {
-    return _sg_mtl_create_image(img, desc);
+    #if defined(SOKOL_METAL)
+    return _sg_mtl_create_image(img, desc);    #elif defined(SOKOL_DUMMY_BACKEND)
+    return _sg_dummy_create_image(img, desc);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_discard_image(_sg_image_t* img) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_discard_image(img);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_discard_image(img);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline sg_resource_state _sg_create_sampler(_sg_sampler_t* smp, const sg_sampler_desc* desc) {
-    return _sg_mtl_create_sampler(smp, desc);
+    #if defined(SOKOL_METAL)
+    return _sg_mtl_create_sampler(smp, desc);    #elif defined(SOKOL_DUMMY_BACKEND)
+    return _sg_dummy_create_sampler(smp, desc);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_discard_sampler(_sg_sampler_t* smp) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_discard_sampler(smp);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_discard_sampler(smp);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline sg_resource_state _sg_create_shader(_sg_shader_t* shd, const sg_shader_desc* desc) {
-    return _sg_mtl_create_shader(shd, desc);
+    #if defined(SOKOL_METAL)
+    return _sg_mtl_create_shader(shd, desc);    #elif defined(SOKOL_DUMMY_BACKEND)
+    return _sg_dummy_create_shader(shd, desc);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_discard_shader(_sg_shader_t* shd) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_discard_shader(shd);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_discard_shader(shd);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline sg_resource_state _sg_create_pipeline(_sg_pipeline_t* pip, const sg_pipeline_desc* desc) {
-    return _sg_mtl_create_pipeline(pip, desc);
+    #if defined(SOKOL_METAL)
+    return _sg_mtl_create_pipeline(pip, desc);    #elif defined(SOKOL_DUMMY_BACKEND)
+    return _sg_dummy_create_pipeline(pip, desc);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_discard_pipeline(_sg_pipeline_t* pip) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_discard_pipeline(pip);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_discard_pipeline(pip);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline sg_resource_state _sg_create_view(_sg_view_t* view, const sg_view_desc* desc) {
-    return _sg_mtl_create_view(view, desc);
+    #if defined(SOKOL_METAL)
+    return _sg_mtl_create_view(view, desc);    #elif defined(SOKOL_DUMMY_BACKEND)
+    return _sg_dummy_create_view(view, desc);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_discard_view(_sg_view_t* view) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_discard_view(view);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_discard_view(view);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_begin_pass(const sg_pass* pass, const _sg_attachments_ptrs_t* atts) {
-    _sg_mtl_begin_pass(pass, atts);
+    #if defined(SOKOL_METAL)
+    _sg_mtl_begin_pass(pass, atts);    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_begin_pass(pass, atts);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_end_pass(const _sg_attachments_ptrs_t* atts) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_end_pass(atts);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_end_pass(atts);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_apply_viewport(int x, int y, int w, int h, bool origin_top_left) {
-    _sg_mtl_apply_viewport(x, y, w, h, origin_top_left);
+    #if defined(SOKOL_METAL)
+    _sg_mtl_apply_viewport(x, y, w, h, origin_top_left);    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_apply_viewport(x, y, w, h, origin_top_left);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_apply_scissor_rect(int x, int y, int w, int h, bool origin_top_left) {
-    _sg_mtl_apply_scissor_rect(x, y, w, h, origin_top_left);
+    #if defined(SOKOL_METAL)
+    _sg_mtl_apply_scissor_rect(x, y, w, h, origin_top_left);    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_apply_scissor_rect(x, y, w, h, origin_top_left);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_apply_pipeline(_sg_pipeline_t* pip) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_apply_pipeline(pip);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_apply_pipeline(pip);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline bool _sg_apply_bindings(_sg_bindings_ptrs_t* bnd) {
+    #if defined(SOKOL_METAL)
     return _sg_mtl_apply_bindings(bnd);
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    return _sg_dummy_apply_bindings(bnd);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_apply_uniforms(int ub_slot, const sg_range* data) {
-    _sg_mtl_apply_uniforms(ub_slot, data);
+    #if defined(SOKOL_METAL)
+    _sg_mtl_apply_uniforms(ub_slot, data);    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_apply_uniforms(ub_slot, data);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_draw(int base_element, int num_elements, int num_instances) {
-    _sg_mtl_draw(base_element, num_elements, num_instances);
+    #if defined(SOKOL_METAL)
+    _sg_mtl_draw(base_element, num_elements, num_instances);    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_draw(base_element, num_elements, num_instances);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_dispatch(int num_groups_x, int num_groups_y, int num_groups_z) {
-    _sg_mtl_dispatch(num_groups_x, num_groups_y, num_groups_z);
+    #if defined(SOKOL_METAL)
+    _sg_mtl_dispatch(num_groups_x, num_groups_y, num_groups_z);    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_dispatch(num_groups_x, num_groups_y, num_groups_z);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_commit(void) {
+    #if defined(SOKOL_METAL)
     _sg_mtl_commit();
+    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_commit();
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_update_buffer(_sg_buffer_t* buf, const sg_range* data) {
-    _sg_mtl_update_buffer(buf, data);
+    #if defined(SOKOL_METAL)
+    _sg_mtl_update_buffer(buf, data);    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_update_buffer(buf, data);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_append_buffer(_sg_buffer_t* buf, const sg_range* data, bool new_frame) {
-    _sg_mtl_append_buffer(buf, data, new_frame);
+    #if defined(SOKOL_METAL)
+    _sg_mtl_append_buffer(buf, data, new_frame);    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_append_buffer(buf, data, new_frame);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_update_image(_sg_image_t* img, const sg_image_data* data) {
-    _sg_mtl_update_image(img, data);
+    #if defined(SOKOL_METAL)
+    _sg_mtl_update_image(img, data);    #elif defined(SOKOL_DUMMY_BACKEND)
+    _sg_dummy_update_image(img, data);
+    #else
+    #error("INVALID BACKEND");
+    #endif
 }
 
 static inline void _sg_push_debug_group(const char* name) {
@@ -9711,6 +10171,8 @@ _SOKOL_PRIVATE bool _sg_validate_shader_desc(const sg_shader_desc* desc) {
                 #if defined(SOKOL_METAL)
                 _SG_VALIDATE(tex_desc->msl_texture_n < _SG_MTL_MAX_STAGE_TEXTURE_BINDINGS, VALIDATE_SHADERDESC_VIEW_TEXTURE_METAL_TEXTURE_SLOT_OUT_OF_RANGE);
                 _SG_VALIDATE(_sg_validate_slot_bits(msl_tex_bits, tex_desc->stage, tex_desc->msl_texture_n), VALIDATE_SHADERDESC_VIEW_TEXTURE_METAL_TEXTURE_SLOT_COLLISION);
+                #elif defined(SOKOL_DUMMY_BACKEND) || defined(_SOKOL_ANY_GL)
+                _SOKOL_UNUSED(tex_desc);
                 #endif
             } else if (view_desc->storage_buffer.stage != SG_SHADERSTAGE_NONE) {
                 const sg_shader_storage_buffer_view* sbuf_desc = &view_desc->storage_buffer;

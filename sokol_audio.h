@@ -15,7 +15,6 @@
 
     Optionally provide the following defines with your own implementations:
 
-    SOKOL_DUMMY_BACKEND - use a dummy backend
     SOKOL_ASSERT(c)     - your own assert macro (default: assert(c))
     SOKOL_AUDIO_API_DECL- public function declaration prefix (default: extern)
     SOKOL_API_DECL      - same as SOKOL_AUDIO_API_DECL
@@ -479,9 +478,11 @@
         distribution.
 */
 #define SOKOL_AUDIO_INCLUDED (1)
-#include <stddef.h> // size_t
+#include <stddef.h> /* size_t */
 #include <stdint.h>
-#include <stdbool.h>
+
+/* C89 bool support */
+typedef enum { false, true } bool;
 
 #if defined(SOKOL_API_DECL) && !defined(SOKOL_AUDIO_API_DECL)
 #define SOKOL_AUDIO_API_DECL SOKOL_API_DECL
@@ -494,10 +495,6 @@
 #else
 #define SOKOL_AUDIO_API_DECL extern
 #endif
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 /*
@@ -541,6 +538,7 @@ extern "C" {
 #define _SAUDIO_LOGITEM_XMACRO(item,msg) SAUDIO_LOGITEM_##item,
 typedef enum saudio_log_item {
     _SAUDIO_LOG_ITEMS
+    _SAUDIO_LOG_ITEM_FORCE_U32 = 0x7FFFFFFF
 } saudio_log_item;
 #undef _SAUDIO_LOGITEM_XMACRO
 
@@ -552,12 +550,12 @@ typedef enum saudio_log_item {
 */
 typedef struct saudio_logger {
     void (*func)(
-        const char* tag,                // always "saudio"
-        uint32_t log_level,             // 0=panic, 1=error, 2=warning, 3=info
-        uint32_t log_item_id,           // SAUDIO_LOGITEM_*
-        const char* message_or_null,    // a message string, may be nullptr in release mode
-        uint32_t line_nr,               // line number in sokol_audio.h
-        const char* filename_or_null,   // source filename, may be nullptr in release mode
+        const char* tag,                /* always "saudio" */
+        uint32_t log_level,             /* 0=panic, 1=error, 2=warning, 3=info */
+        uint32_t log_item_id,           /* SAUDIO_LOGITEM_* */
+        const char* message_or_null,    /* a message string, may be nullptr in release mode */
+        uint32_t line_nr,               /* line number in sokol_audio.h */
+        const char* filename_or_null,   /* source filename, may be nullptr in release mode */
         void* user_data);
     void* user_data;
 } saudio_logger;
@@ -577,16 +575,16 @@ typedef struct saudio_allocator {
 } saudio_allocator;
 
 typedef struct saudio_desc {
-    int sample_rate;        // requested sample rate
-    int num_channels;       // number of channels, default: 1 (mono)
-    int buffer_frames;      // number of frames in streaming buffer
-    int packet_frames;      // number of frames in a packet
-    int num_packets;        // number of packets in packet queue
-    void (*stream_cb)(float* buffer, int num_frames, int num_channels);  // optional streaming callback (no user data)
-    void (*stream_userdata_cb)(float* buffer, int num_frames, int num_channels, void* user_data); //... and with user data
-    void* user_data;        // optional user data argument for stream_userdata_cb
-    saudio_allocator allocator;     // optional allocation override functions
-    saudio_logger logger;           // optional logging function (default: NO LOGGING!)
+    int sample_rate;        /* requested sample rate */
+    int num_channels;       /* number of channels, default: 1 (mono) */
+    int buffer_frames;      /* number of frames in streaming buffer */
+    int packet_frames;      /* number of frames in a packet */
+    int num_packets;        /* number of packets in packet queue */
+    void (*stream_cb)(float* buffer, int num_frames, int num_channels);  /* optional streaming callback (no user data) */
+    void (*stream_userdata_cb)(float* buffer, int num_frames, int num_channels, void* user_data); /*... and with user data */
+    void* user_data;        /* optional user data argument for stream_userdata_cb */
+    saudio_allocator allocator;     /* optional allocation override functions */
+    saudio_logger logger;           /* optional logging function (default: NO LOGGING!) */
 } saudio_desc;
 
 /* setup sokol-audio */
@@ -611,15 +609,7 @@ SOKOL_AUDIO_API_DECL bool saudio_suspended(void);
 SOKOL_AUDIO_API_DECL int saudio_expect(void);
 /* push sample frames from main thread, returns number of frames actually pushed */
 SOKOL_AUDIO_API_DECL int saudio_push(const float* frames, int num_frames);
-
-#ifdef __cplusplus
-} /* extern "C" */
-
-/* reference-based equivalents for c++ */
-inline void saudio_setup(const saudio_desc& desc) { return saudio_setup(&desc); }
-
-#endif
-#endif // SOKOL_AUDIO_INCLUDED
+#endif /* SOKOL_AUDIO_INCLUDED */
 
 // ██ ███    ███ ██████  ██      ███████ ███    ███ ███████ ███    ██ ████████  █████  ████████ ██  ██████  ███    ██
 // ██ ████  ████ ██   ██ ██      ██      ████  ████ ██      ████   ██    ██    ██   ██    ██    ██ ██    ██ ████   ██
@@ -635,9 +625,9 @@ inline void saudio_setup(const saudio_desc& desc) { return saudio_setup(&desc); 
 #error "SOKOL_MALLOC/CALLOC/FREE macros are no longer supported, please use saudio_desc.allocator to override memory allocation functions"
 #endif
 
-#include <stdlib.h> // alloc, free
-#include <string.h> // memset, memcpy
-#include <stddef.h> // size_t
+#include <stdlib.h> /* alloc, free */
+#include <string.h> /* memset, memcpy */
+#include <stddef.h> /* size_t */
 
 #ifndef SOKOL_API_IMPL
     #define SOKOL_API_IMPL
@@ -664,132 +654,33 @@ inline void saudio_setup(const saudio_desc& desc) { return saudio_setup(&desc); 
     #define _SOKOL_UNUSED(x) (void)(x)
 #endif
 
-// platform detection defines
-#if defined(SOKOL_DUMMY_BACKEND)
-    // nothing
-#elif defined(__APPLE__)
-    #define _SAUDIO_APPLE (1)
-    #include <TargetConditionals.h>
-    #if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
-        #define _SAUDIO_IOS (1)
-    #else
-        #define _SAUDIO_MACOS (1)
-    #endif
-#elif defined(__EMSCRIPTEN__)
-    // Use dummy backend on non-Apple platforms in this Metal-only build
-    #ifndef SOKOL_DUMMY_BACKEND
-    #define SOKOL_DUMMY_BACKEND
-    #endif
-#elif defined(_WIN32)
-    // Use dummy backend on non-Apple platforms in this Metal-only build  
-    #ifndef SOKOL_DUMMY_BACKEND
-    #define SOKOL_DUMMY_BACKEND
-    #endif
-#elif defined(__ANDROID__)
-    // Use dummy backend on non-Apple platforms in this Metal-only build
-    #ifndef SOKOL_DUMMY_BACKEND
-    #define SOKOL_DUMMY_BACKEND
-    #endif
-#elif defined(__linux__) || defined(__unix__)
-    // Use dummy backend on non-Apple platforms in this Metal-only build
-    #ifndef SOKOL_DUMMY_BACKEND
-    #define SOKOL_DUMMY_BACKEND
-    #endif
+// Apple platform detection for Metal-only build
+#define _SAUDIO_APPLE (1)
+#include <TargetConditionals.h>
+#if defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE
+    #define _SAUDIO_IOS (1)
 #else
-#error "sokol_audio.h: Unknown platform"
+    #define _SAUDIO_MACOS (1)
 #endif
 
-// platform-specific headers and definitions
-#if defined(SOKOL_DUMMY_BACKEND)
-    #define _SAUDIO_NOTHREADS (1)
-#elif defined(_SAUDIO_WINDOWS)
-    #if defined(__GNUC__)
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic ignored "-Wunknown-pragmas"
+// Apple platform-specific headers and definitions
+#define _SAUDIO_PTHREADS (1)
+#include <pthread.h>
+#if defined(_SAUDIO_IOS)
+    // always use system headers on iOS (for now at least)
+    #if !defined(SAUDIO_OSX_USE_SYSTEM_HEADERS)
+        #define SAUDIO_OSX_USE_SYSTEM_HEADERS (1)
     #endif
-    #define _SAUDIO_WINTHREADS (1)
-    #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
+    /* C89-only build - always enable ARC field support check */
+    #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
+        #error "sokol_audio.h on iOS requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
     #endif
-    #ifndef NOMINMAX
-    #define NOMINMAX
-    #endif
-    #include <windows.h>
-    #include <synchapi.h>
-    #pragma comment (lib, "kernel32")
-    #pragma comment (lib, "ole32")
-    #ifndef CINTERFACE
-    #define CINTERFACE
-    #endif
-    #ifndef COBJMACROS
-    #define COBJMACROS
-    #endif
-    #ifndef CONST_VTABLE
-    #define CONST_VTABLE
-    #endif
-    #include <mmdeviceapi.h>
-    #include <audioclient.h>
-    static const IID _saudio_IID_IAudioClient                               = { 0x1cb9ad4c, 0xdbfa, 0x4c32, {0xb1, 0x78, 0xc2, 0xf5, 0x68, 0xa7, 0x03, 0xb2} };
-    static const IID _saudio_IID_IMMDeviceEnumerator                        = { 0xa95664d2, 0x9614, 0x4f35, {0xa7, 0x46, 0xde, 0x8d, 0xb6, 0x36, 0x17, 0xe6} };
-    static const CLSID _saudio_CLSID_IMMDeviceEnumerator                    = { 0xbcde0395, 0xe52f, 0x467c, {0x8e, 0x3d, 0xc4, 0x57, 0x92, 0x91, 0x69, 0x2e} };
-    static const IID _saudio_IID_IAudioRenderClient                         = { 0xf294acfc, 0x3146, 0x4483, {0xa7, 0xbf, 0xad, 0xdc, 0xa7, 0xc2, 0x60, 0xe2} };
-    static const IID _saudio_IID_Devinterface_Audio_Render                  = { 0xe6327cad, 0xdcec, 0x4949, {0xae, 0x8a, 0x99, 0x1e, 0x97, 0x6a, 0x79, 0xd2} };
-    static const IID _saudio_IID_IActivateAudioInterface_Completion_Handler = { 0x94ea2b94, 0xe9cc, 0x49e0, {0xc0, 0xff, 0xee, 0x64, 0xca, 0x8f, 0x5b, 0x90} };
-    static const GUID _saudio_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT               = { 0x00000003, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71} };
-    #if defined(__cplusplus)
-    #define _SOKOL_AUDIO_WIN32COM_ID(x) (x)
-    #else
-    #define _SOKOL_AUDIO_WIN32COM_ID(x) (&x)
-    #endif
-    /* fix for Visual Studio 2015 SDKs */
-    #ifndef AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM
-    #define AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM 0x80000000
-    #endif
-    #ifndef AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY
-    #define AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY 0x08000000
-    #endif
-    #ifdef _MSC_VER
-        #pragma warning(push)
-        #pragma warning(disable:4505)   /* unreferenced local function has been removed */
-    #endif
-    #if defined(__GNUC__)
-        #pragma GCC diagnostic pop
-    #endif
-#elif defined(_SAUDIO_APPLE)
-    #define _SAUDIO_PTHREADS (1)
-    #include <pthread.h>
-    #if defined(_SAUDIO_IOS)
-        // always use system headers on iOS (for now at least)
-        #if !defined(SAUDIO_OSX_USE_SYSTEM_HEADERS)
-            #define SAUDIO_OSX_USE_SYSTEM_HEADERS (1)
-        #endif
-        #if !defined(__cplusplus)
-            #if __has_feature(objc_arc) && !__has_feature(objc_arc_fields)
-                #error "sokol_audio.h on iOS requires __has_feature(objc_arc_field) if ARC is enabled (use a more recent compiler version)"
-            #endif
-        #endif
+    #include <AudioToolbox/AudioToolbox.h>
+    #include <AVFoundation/AVFoundation.h>
+#else
+    #if defined(SAUDIO_OSX_USE_SYSTEM_HEADERS)
         #include <AudioToolbox/AudioToolbox.h>
-        #include <AVFoundation/AVFoundation.h>
-    #else
-        #if defined(SAUDIO_OSX_USE_SYSTEM_HEADERS)
-            #include <AudioToolbox/AudioToolbox.h>
-        #endif
     #endif
-#elif defined(_SAUDIO_ANDROID)
-    #define _SAUDIO_PTHREADS (1)
-    #include <pthread.h>
-    #include "aaudio/AAudio.h"
-#elif defined(_SAUDIO_LINUX)
-    #if !defined(__FreeBSD__)
-        #include <alloca.h>
-    #endif
-    #define _SAUDIO_PTHREADS (1)
-    #include <pthread.h>
-    #define ALSA_PCM_NEW_HW_PARAMS_API
-    #include <alsa/asoundlib.h>
-#elif defined(__EMSCRIPTEN__)
-    #define _SAUDIO_NOTHREADS (1)
-    #include <emscripten/emscripten.h>
 #endif
 
 #define _saudio_def(val, def) (((val) == 0) ? (def) : (val))
@@ -811,33 +702,10 @@ inline void saudio_setup(const saudio_desc& desc) { return saudio_setup(&desc); 
 // ███████    ██    ██   ██  ██████   ██████    ██    ███████
 //
 // >>structs
-#if defined(_SAUDIO_PTHREADS)
-
+// Pthreads-based mutex for Apple platforms
 typedef struct {
     pthread_mutex_t mutex;
 } _saudio_mutex_t;
-
-#elif defined(_SAUDIO_WINTHREADS)
-
-typedef struct {
-    CRITICAL_SECTION critsec;
-} _saudio_mutex_t;
-
-#elif defined(_SAUDIO_NOTHREADS)
-
-typedef struct {
-    int dummy_mutex;
-} _saudio_mutex_t;
-
-#endif
-
-#if defined(SOKOL_DUMMY_BACKEND)
-
-typedef struct {
-    int dummy;
-} _saudio_dummy_backend_t;
-
-#elif defined(_SAUDIO_APPLE)
 
 #if defined(SAUDIO_OSX_USE_SYSTEM_HEADERS)
 
@@ -851,9 +719,6 @@ typedef OSStatus _saudio_OSStatus;
 #define _saudio_kAudioFormatFlagIsPacked (kAudioFormatFlagIsPacked)
 
 #else
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 // embedded AudioToolbox declarations
 typedef uint32_t _saudio_AudioFormatID;
@@ -930,11 +795,7 @@ extern _saudio_OSStatus AudioQueueEnqueueBuffer(_saudio_AudioQueueRef inAQ, _sau
 extern _saudio_OSStatus AudioQueueStart(_saudio_AudioQueueRef inAQ, const _saudio_AudioTimeStamp * inStartTime);
 extern _saudio_OSStatus AudioQueueStop(_saudio_AudioQueueRef inAQ, bool inImmediate);
 
-#ifdef __cplusplus
-} // extern "C"
-#endif
-
-#endif // SAUDIO_OSX_USE_SYSTEM_HEADERS
+#endif /* SAUDIO_OSX_USE_SYSTEM_HEADERS */
 
 typedef struct {
     _saudio_AudioQueueRef ca_audio_queue;
@@ -943,70 +804,7 @@ typedef struct {
     #endif
 } _saudio_apple_backend_t;
 
-#elif defined(_SAUDIO_LINUX)
-
-typedef struct {
-    snd_pcm_t* device;
-    float* buffer;
-    int buffer_byte_size;
-    int buffer_frames;
-    pthread_t thread;
-    bool thread_stop;
-} _saudio_alsa_backend_t;
-
-#elif defined(_SAUDIO_ANDROID)
-
-typedef struct {
-    AAudioStreamBuilder* builder;
-    AAudioStream* stream;
-    pthread_t thread;
-    pthread_mutex_t mutex;
-} _saudio_aaudio_backend_t;
-
-#elif defined(_SAUDIO_WINDOWS)
-
-typedef struct {
-    HANDLE thread_handle;
-    HANDLE buffer_end_event;
-    bool stop;
-    UINT32 dst_buffer_frames;
-    int src_buffer_frames;
-    int src_buffer_byte_size;
-    int src_buffer_pos;
-    float* src_buffer;
-} _saudio_wasapi_thread_data_t;
-
-typedef struct {
-    IMMDeviceEnumerator* device_enumerator;
-    IMMDevice* device;
-    IAudioClient* audio_client;
-    IAudioRenderClient* render_client;
-    _saudio_wasapi_thread_data_t thread;
-} _saudio_wasapi_backend_t;
-
-#elif defined(_SAUDIO_EMSCRIPTEN)
-
-typedef struct {
-    uint8_t* buffer;
-} _saudio_web_backend_t;
-
-#else
-#error "unknown platform"
-#endif
-
-#if defined(SOKOL_DUMMY_BACKEND)
-typedef _saudio_dummy_backend_t _saudio_backend_t;
-#elif defined(_SAUDIO_APPLE)
 typedef _saudio_apple_backend_t _saudio_backend_t;
-#elif defined(_SAUDIO_EMSCRIPTEN)
-typedef _saudio_web_backend_t _saudio_backend_t;
-#elif defined(_SAUDIO_WINDOWS)
-typedef _saudio_wasapi_backend_t _saudio_backend_t;
-#elif defined(_SAUDIO_ANDROID)
-typedef _saudio_aaudio_backend_t _saudio_backend_t;
-#elif defined(_SAUDIO_LINUX)
-typedef _saudio_alsa_backend_t _saudio_backend_t;
-#endif
 
 /* a ringbuffer structure */
 typedef struct {
@@ -1391,356 +1189,6 @@ _SOKOL_PRIVATE int _saudio_fifo_read(_saudio_fifo_t* fifo, uint8_t* ptr, int num
 // ██████   ██████  ██      ██ ██      ██    ██
 //
 // >>dummy
-#if defined(SOKOL_DUMMY_BACKEND)
-_SOKOL_PRIVATE bool _saudio_dummy_backend_init(void) {
-    _saudio.bytes_per_frame = _saudio.num_channels * (int)sizeof(float);
-    return true;
-}
-_SOKOL_PRIVATE void _saudio_dummy_backend_shutdown(void) { }
-
-//  █████  ██      ███████  █████
-// ██   ██ ██      ██      ██   ██
-// ███████ ██      ███████ ███████
-// ██   ██ ██           ██ ██   ██
-// ██   ██ ███████ ███████ ██   ██
-//
-// >>alsa
-#elif defined(_SAUDIO_LINUX)
-
-/* the streaming callback runs in a separate thread */
-_SOKOL_PRIVATE void* _saudio_alsa_cb(void* param) {
-    _SOKOL_UNUSED(param);
-    while (!_saudio.backend.thread_stop) {
-        /* snd_pcm_writei() will be blocking until it needs data */
-        int write_res = snd_pcm_writei(_saudio.backend.device, _saudio.backend.buffer, (snd_pcm_uframes_t)_saudio.backend.buffer_frames);
-        if (write_res < 0) {
-            /* underrun occurred */
-            snd_pcm_prepare(_saudio.backend.device);
-        }
-        else {
-            /* fill the streaming buffer with new data */
-            if (_saudio_has_callback()) {
-                _saudio_stream_callback(_saudio.backend.buffer, _saudio.backend.buffer_frames, _saudio.num_channels);
-            }
-            else {
-                if (0 == _saudio_fifo_read(&_saudio.fifo, (uint8_t*)_saudio.backend.buffer, _saudio.backend.buffer_byte_size)) {
-                    /* not enough read data available, fill the entire buffer with silence */
-                    _saudio_clear(_saudio.backend.buffer, (size_t)_saudio.backend.buffer_byte_size);
-                }
-            }
-        }
-    }
-    return 0;
-}
-
-_SOKOL_PRIVATE bool _saudio_alsa_backend_init(void) {
-    int dir; uint32_t rate;
-    int rc = snd_pcm_open(&_saudio.backend.device, "default", SND_PCM_STREAM_PLAYBACK, 0);
-    if (rc < 0) {
-        _SAUDIO_ERROR(ALSA_SND_PCM_OPEN_FAILED);
-        return false;
-    }
-
-    /* configuration works by restricting the 'configuration space' step
-       by step, we require all parameters except the sample rate to
-       match perfectly
-    */
-    snd_pcm_hw_params_t* params = 0;
-    snd_pcm_hw_params_alloca(&params);
-    snd_pcm_hw_params_any(_saudio.backend.device, params);
-    snd_pcm_hw_params_set_access(_saudio.backend.device, params, SND_PCM_ACCESS_RW_INTERLEAVED);
-    if (0 > snd_pcm_hw_params_set_format(_saudio.backend.device, params, SND_PCM_FORMAT_FLOAT_LE)) {
-        _SAUDIO_ERROR(ALSA_FLOAT_SAMPLES_NOT_SUPPORTED);
-        goto error;
-    }
-    if (0 > snd_pcm_hw_params_set_buffer_size(_saudio.backend.device, params, (snd_pcm_uframes_t)_saudio.buffer_frames)) {
-        _SAUDIO_ERROR(ALSA_REQUESTED_BUFFER_SIZE_NOT_SUPPORTED);
-        goto error;
-    }
-    if (0 > snd_pcm_hw_params_set_channels(_saudio.backend.device, params, (uint32_t)_saudio.num_channels)) {
-        _SAUDIO_ERROR(ALSA_REQUESTED_CHANNEL_COUNT_NOT_SUPPORTED);
-        goto error;
-    }
-    /* let ALSA pick a nearby sampling rate */
-    rate = (uint32_t) _saudio.sample_rate;
-    dir = 0;
-    if (0 > snd_pcm_hw_params_set_rate_near(_saudio.backend.device, params, &rate, &dir)) {
-        _SAUDIO_ERROR(ALSA_SND_PCM_HW_PARAMS_SET_RATE_NEAR_FAILED);
-        goto error;
-    }
-    if (0 > snd_pcm_hw_params(_saudio.backend.device, params)) {
-        _SAUDIO_ERROR(ALSA_SND_PCM_HW_PARAMS_FAILED);
-        goto error;
-    }
-
-    /* read back actual sample rate and channels */
-    _saudio.sample_rate = (int)rate;
-    _saudio.bytes_per_frame = _saudio.num_channels * (int)sizeof(float);
-
-    /* allocate the streaming buffer */
-    _saudio.backend.buffer_byte_size = _saudio.buffer_frames * _saudio.bytes_per_frame;
-    _saudio.backend.buffer_frames = _saudio.buffer_frames;
-    _saudio.backend.buffer = (float*) _saudio_malloc_clear((size_t)_saudio.backend.buffer_byte_size);
-
-    /* create the buffer-streaming start thread */
-    if (0 != pthread_create(&_saudio.backend.thread, 0, _saudio_alsa_cb, 0)) {
-        _SAUDIO_ERROR(ALSA_PTHREAD_CREATE_FAILED);
-        goto error;
-    }
-
-    return true;
-error:
-    if (_saudio.backend.device) {
-        snd_pcm_close(_saudio.backend.device);
-        _saudio.backend.device = 0;
-    }
-    return false;
-}
-
-_SOKOL_PRIVATE void _saudio_alsa_backend_shutdown(void) {
-    SOKOL_ASSERT(_saudio.backend.device);
-    _saudio.backend.thread_stop = true;
-    pthread_join(_saudio.backend.thread, 0);
-    snd_pcm_drain(_saudio.backend.device);
-    snd_pcm_close(_saudio.backend.device);
-    _saudio_free(_saudio.backend.buffer);
-}
-
-// ██     ██  █████  ███████  █████  ██████  ██
-// ██     ██ ██   ██ ██      ██   ██ ██   ██ ██
-// ██  █  ██ ███████ ███████ ███████ ██████  ██
-// ██ ███ ██ ██   ██      ██ ██   ██ ██      ██
-//  ███ ███  ██   ██ ███████ ██   ██ ██      ██
-//
-// >>wasapi
-#elif defined(_SAUDIO_WINDOWS)
-
-/* fill intermediate buffer with new data and reset buffer_pos */
-_SOKOL_PRIVATE void _saudio_wasapi_fill_buffer(void) {
-    if (_saudio_has_callback()) {
-        _saudio_stream_callback(_saudio.backend.thread.src_buffer, _saudio.backend.thread.src_buffer_frames, _saudio.num_channels);
-    }
-    else {
-        if (0 == _saudio_fifo_read(&_saudio.fifo, (uint8_t*)_saudio.backend.thread.src_buffer, _saudio.backend.thread.src_buffer_byte_size)) {
-            /* not enough read data available, fill the entire buffer with silence */
-            _saudio_clear(_saudio.backend.thread.src_buffer, (size_t)_saudio.backend.thread.src_buffer_byte_size);
-        }
-    }
-}
-
-_SOKOL_PRIVATE int _saudio_wasapi_min(int a, int b) {
-    return (a < b) ? a : b;
-}
-
-_SOKOL_PRIVATE void _saudio_wasapi_submit_buffer(int num_frames) {
-    BYTE* wasapi_buffer = 0;
-    if (FAILED(IAudioRenderClient_GetBuffer(_saudio.backend.render_client, num_frames, &wasapi_buffer))) {
-        return;
-    }
-    SOKOL_ASSERT(wasapi_buffer);
-
-    /* copy samples to WASAPI buffer, refill source buffer if needed */
-    int num_remaining_samples = num_frames * _saudio.num_channels;
-    int buffer_pos = _saudio.backend.thread.src_buffer_pos;
-    const int buffer_size_in_samples = _saudio.backend.thread.src_buffer_byte_size / (int)sizeof(float);
-    float* dst = (float*)wasapi_buffer;
-    const float* dst_end = dst + num_remaining_samples;
-    _SOKOL_UNUSED(dst_end); // suppress unused warning in release mode
-    const float* src = _saudio.backend.thread.src_buffer;
-
-    while (num_remaining_samples > 0) {
-        if (0 == buffer_pos) {
-            _saudio_wasapi_fill_buffer();
-        }
-        const int samples_to_copy = _saudio_wasapi_min(num_remaining_samples, buffer_size_in_samples - buffer_pos);
-        SOKOL_ASSERT((buffer_pos + samples_to_copy) <= buffer_size_in_samples);
-        SOKOL_ASSERT((dst + samples_to_copy) <= dst_end);
-        memcpy(dst, &src[buffer_pos], (size_t)samples_to_copy * sizeof(float));
-        num_remaining_samples -= samples_to_copy;
-        SOKOL_ASSERT(num_remaining_samples >= 0);
-        buffer_pos += samples_to_copy;
-        dst += samples_to_copy;
-
-        SOKOL_ASSERT(buffer_pos <= buffer_size_in_samples);
-        if (buffer_pos == buffer_size_in_samples) {
-            buffer_pos = 0;
-        }
-    }
-    _saudio.backend.thread.src_buffer_pos = buffer_pos;
-    IAudioRenderClient_ReleaseBuffer(_saudio.backend.render_client, num_frames, 0);
-}
-
-_SOKOL_PRIVATE DWORD WINAPI _saudio_wasapi_thread_fn(LPVOID param) {
-    (void)param;
-    _saudio_wasapi_submit_buffer(_saudio.backend.thread.src_buffer_frames);
-    IAudioClient_Start(_saudio.backend.audio_client);
-    while (!_saudio.backend.thread.stop) {
-        WaitForSingleObject(_saudio.backend.thread.buffer_end_event, INFINITE);
-        UINT32 padding = 0;
-        if (FAILED(IAudioClient_GetCurrentPadding(_saudio.backend.audio_client, &padding))) {
-            continue;
-        }
-        SOKOL_ASSERT(_saudio.backend.thread.dst_buffer_frames >= padding);
-        int num_frames = (int)_saudio.backend.thread.dst_buffer_frames - (int)padding;
-        if (num_frames > 0) {
-            _saudio_wasapi_submit_buffer(num_frames);
-        }
-    }
-    return 0;
-}
-
-_SOKOL_PRIVATE void _saudio_wasapi_release(void) {
-    if (_saudio.backend.thread.src_buffer) {
-        _saudio_free(_saudio.backend.thread.src_buffer);
-        _saudio.backend.thread.src_buffer = 0;
-    }
-    if (_saudio.backend.render_client) {
-        IAudioRenderClient_Release(_saudio.backend.render_client);
-        _saudio.backend.render_client = 0;
-    }
-    if (_saudio.backend.audio_client) {
-        IAudioClient_Release(_saudio.backend.audio_client);
-        _saudio.backend.audio_client = 0;
-    }
-    if (_saudio.backend.device) {
-        IMMDevice_Release(_saudio.backend.device);
-        _saudio.backend.device = 0;
-    }
-    if (_saudio.backend.device_enumerator) {
-        IMMDeviceEnumerator_Release(_saudio.backend.device_enumerator);
-        _saudio.backend.device_enumerator = 0;
-    }
-    if (0 != _saudio.backend.thread.buffer_end_event) {
-        CloseHandle(_saudio.backend.thread.buffer_end_event);
-        _saudio.backend.thread.buffer_end_event = 0;
-    }
-}
-
-_SOKOL_PRIVATE bool _saudio_wasapi_backend_init(void) {
-    REFERENCE_TIME dur;
-    /* CoInitializeEx could have been called elsewhere already, in which
-        case the function returns with S_FALSE (thus it does not make much
-        sense to check the result)
-    */
-    HRESULT hr = CoInitializeEx(0, COINIT_MULTITHREADED);
-    _SOKOL_UNUSED(hr);
-    _saudio.backend.thread.buffer_end_event = CreateEvent(0, FALSE, FALSE, 0);
-    if (0 == _saudio.backend.thread.buffer_end_event) {
-        _SAUDIO_ERROR(WASAPI_CREATE_EVENT_FAILED);
-        goto error;
-    }
-    if (FAILED(CoCreateInstance(_SOKOL_AUDIO_WIN32COM_ID(_saudio_CLSID_IMMDeviceEnumerator),
-        0, CLSCTX_ALL,
-        _SOKOL_AUDIO_WIN32COM_ID(_saudio_IID_IMMDeviceEnumerator),
-        (void**)&_saudio.backend.device_enumerator)))
-    {
-        _SAUDIO_ERROR(WASAPI_CREATE_DEVICE_ENUMERATOR_FAILED);
-        goto error;
-    }
-    if (FAILED(IMMDeviceEnumerator_GetDefaultAudioEndpoint(_saudio.backend.device_enumerator,
-        eRender, eConsole,
-        &_saudio.backend.device)))
-    {
-        _SAUDIO_ERROR(WASAPI_GET_DEFAULT_AUDIO_ENDPOINT_FAILED);
-        goto error;
-    }
-    if (FAILED(IMMDevice_Activate(_saudio.backend.device,
-        _SOKOL_AUDIO_WIN32COM_ID(_saudio_IID_IAudioClient),
-        CLSCTX_ALL, 0,
-        (void**)&_saudio.backend.audio_client)))
-    {
-        _SAUDIO_ERROR(WASAPI_DEVICE_ACTIVATE_FAILED);
-        goto error;
-    }
-
-    WAVEFORMATEXTENSIBLE fmtex;
-    _saudio_clear(&fmtex, sizeof(fmtex));
-    fmtex.Format.nChannels = (WORD)_saudio.num_channels;
-    fmtex.Format.nSamplesPerSec = (DWORD)_saudio.sample_rate;
-    fmtex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-    fmtex.Format.wBitsPerSample = 32;
-    fmtex.Format.nBlockAlign = (fmtex.Format.nChannels * fmtex.Format.wBitsPerSample) / 8;
-    fmtex.Format.nAvgBytesPerSec = fmtex.Format.nSamplesPerSec * fmtex.Format.nBlockAlign;
-    fmtex.Format.cbSize = 22;   /* WORD + DWORD + GUID */
-    fmtex.Samples.wValidBitsPerSample = 32;
-    if (_saudio.num_channels == 1) {
-        fmtex.dwChannelMask = SPEAKER_FRONT_CENTER;
-    }
-    else {
-        fmtex.dwChannelMask = SPEAKER_FRONT_LEFT|SPEAKER_FRONT_RIGHT;
-    }
-    fmtex.SubFormat = _saudio_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
-    dur = (REFERENCE_TIME)
-        (((double)_saudio.buffer_frames) / (((double)_saudio.sample_rate) * (1.0/10000000.0)));
-    if (FAILED(IAudioClient_Initialize(_saudio.backend.audio_client,
-        AUDCLNT_SHAREMODE_SHARED,
-        AUDCLNT_STREAMFLAGS_EVENTCALLBACK|AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM|AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY,
-        dur, 0, (WAVEFORMATEX*)&fmtex, 0)))
-    {
-        _SAUDIO_ERROR(WASAPI_AUDIO_CLIENT_INITIALIZE_FAILED);
-        goto error;
-    }
-    if (FAILED(IAudioClient_GetBufferSize(_saudio.backend.audio_client, &_saudio.backend.thread.dst_buffer_frames))) {
-        _SAUDIO_ERROR(WASAPI_AUDIO_CLIENT_GET_BUFFER_SIZE_FAILED);
-        goto error;
-    }
-    if (FAILED(IAudioClient_GetService(_saudio.backend.audio_client,
-        _SOKOL_AUDIO_WIN32COM_ID(_saudio_IID_IAudioRenderClient),
-        (void**)&_saudio.backend.render_client)))
-    {
-        _SAUDIO_ERROR(WASAPI_AUDIO_CLIENT_GET_SERVICE_FAILED);
-        goto error;
-    }
-    if (FAILED(IAudioClient_SetEventHandle(_saudio.backend.audio_client, _saudio.backend.thread.buffer_end_event))) {
-        _SAUDIO_ERROR(WASAPI_AUDIO_CLIENT_SET_EVENT_HANDLE_FAILED);
-        goto error;
-    }
-    _saudio.bytes_per_frame = _saudio.num_channels * (int)sizeof(float);
-    _saudio.backend.thread.src_buffer_frames = _saudio.buffer_frames;
-    _saudio.backend.thread.src_buffer_byte_size = _saudio.backend.thread.src_buffer_frames * _saudio.bytes_per_frame;
-
-    /* allocate an intermediate buffer for sample format conversion */
-    _saudio.backend.thread.src_buffer = (float*) _saudio_malloc((size_t)_saudio.backend.thread.src_buffer_byte_size);
-
-    /* create streaming thread */
-    _saudio.backend.thread.thread_handle = CreateThread(NULL, 0, _saudio_wasapi_thread_fn, 0, 0, 0);
-    if (0 == _saudio.backend.thread.thread_handle) {
-        _SAUDIO_ERROR(WASAPI_CREATE_THREAD_FAILED);
-        goto error;
-    }
-    return true;
-error:
-    _saudio_wasapi_release();
-    return false;
-}
-
-_SOKOL_PRIVATE void _saudio_wasapi_backend_shutdown(void) {
-    if (_saudio.backend.thread.thread_handle) {
-        _saudio.backend.thread.stop = true;
-        SetEvent(_saudio.backend.thread.buffer_end_event);
-        WaitForSingleObject(_saudio.backend.thread.thread_handle, INFINITE);
-        CloseHandle(_saudio.backend.thread.thread_handle);
-        _saudio.backend.thread.thread_handle = 0;
-    }
-    if (_saudio.backend.audio_client) {
-        IAudioClient_Stop(_saudio.backend.audio_client);
-    }
-    _saudio_wasapi_release();
-    CoUninitialize();
-}
-
-// ██     ██ ███████ ██████   █████  ██    ██ ██████  ██  ██████
-// ██     ██ ██      ██   ██ ██   ██ ██    ██ ██   ██ ██ ██    ██
-// ██  █  ██ █████   ██████  ███████ ██    ██ ██   ██ ██ ██    ██
-// ██ ███ ██ ██      ██   ██ ██   ██ ██    ██ ██   ██ ██ ██    ██
-//  ███ ███  ███████ ██████  ██   ██  ██████  ██████  ██  ██████
-//
-// >>webaudio
-#elif defined(_SAUDIO_EMSCRIPTEN)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 EMSCRIPTEN_KEEPALIVE int _saudio_emsc_pull(int num_frames) {
     SOKOL_ASSERT(_saudio.backend.buffer);
@@ -1762,10 +1210,6 @@ EMSCRIPTEN_KEEPALIVE int _saudio_emsc_pull(int num_frames) {
         return 0;
     }
 }
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
 
 /* setup the WebAudio context and attach a ScriptProcessorNode */
 EM_JS(int, saudio_js_init, (int sample_rate, int num_channels, int buffer_size), {
@@ -2157,39 +1601,11 @@ _SOKOL_PRIVATE bool _saudio_coreaudio_backend_init(void) {
 #endif
 
 bool _saudio_backend_init(void) {
-    #if defined(SOKOL_DUMMY_BACKEND)
-        return _saudio_dummy_backend_init();
-    #elif defined(_SAUDIO_LINUX)
-        return _saudio_alsa_backend_init();
-    #elif defined(_SAUDIO_WINDOWS)
-        return _saudio_wasapi_backend_init();
-    #elif defined(_SAUDIO_EMSCRIPTEN)
-        return _saudio_webaudio_backend_init();
-    #elif defined(_SAUDIO_ANDROID)
-        return _saudio_aaudio_backend_init();
-    #elif defined(_SAUDIO_APPLE)
-        return _saudio_coreaudio_backend_init();
-    #else
-    #error "unknown platform"
-    #endif
+    return _saudio_coreaudio_backend_init();
 }
 
 void _saudio_backend_shutdown(void) {
-    #if defined(SOKOL_DUMMY_BACKEND)
-        _saudio_dummy_backend_shutdown();
-    #elif defined(_SAUDIO_LINUX)
-        _saudio_alsa_backend_shutdown();
-    #elif defined(_SAUDIO_WINDOWS)
-        _saudio_wasapi_backend_shutdown();
-    #elif defined(_SAUDIO_EMSCRIPTEN)
-        _saudio_webaudio_backend_shutdown();
-    #elif defined(_SAUDIO_ANDROID)
-        _saudio_aaudio_backend_shutdown();
-    #elif defined(_SAUDIO_APPLE)
-        _saudio_coreaudio_backend_shutdown();
-    #else
-    #error "unknown platform"
-    #endif
+    _saudio_coreaudio_backend_shutdown();
 }
 
 // ██████  ██    ██ ██████  ██      ██  ██████

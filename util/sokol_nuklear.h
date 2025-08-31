@@ -485,7 +485,6 @@ inline snk_image_t snk_make_image(const snk_image_desc_t& desc) { return snk_mak
 #include <stdlib.h>
 #include <string.h> // memset
 
-#if defined(__EMSCRIPTEN__) && !defined(SOKOL_NUKLEAR_NO_SOKOL_APP) && !defined(SOKOL_DUMMY_BACKEND)
 #include <emscripten.h>
 #endif
 
@@ -2194,11 +2193,10 @@ static const uint8_t _snk_fs_source_wgsl[630] = {
     0x5f,0x6f,0x75,0x74,0x28,0x66,0x72,0x61,0x67,0x5f,0x63,0x6f,0x6c,0x6f,0x72,0x29,
     0x3b,0x0a,0x7d,0x0a,0x0a,0x00,
 };
-#elif defined(SOKOL_DUMMY_BACKEND)
 static const char* _snk_vs_source_dummy = "";
 static const char* _snk_fs_source_dummy = "";
 #else
-#error "Please define one of SOKOL_GLCORE, SOKOL_GLES3, SOKOL_D3D11, SOKOL_METAL, SOKOL_WGPU or SOKOL_DUMMY_BACKEND!"
+#error "This Metal-only build requires SOKOL_METAL!"
 #endif
 
 #if !defined(SOKOL_NUKLEAR_NO_SOKOL_APP)
@@ -2218,7 +2216,6 @@ static void _snk_clipboard_paste(nk_handle usr, struct nk_text_edit *edit) {
     (void)usr;
 }
 
-#if defined(__EMSCRIPTEN__) && !defined(SOKOL_DUMMY_BACKEND)
 EM_JS(int, snk_js_is_osx, (void), {
     if (navigator.userAgent.includes('Macintosh')) {
         return 1;
@@ -2229,7 +2226,6 @@ EM_JS(int, snk_js_is_osx, (void), {
 #endif
 
 static bool _snk_is_osx(void) {
-    #if defined(SOKOL_DUMMY_BACKEND)
         return false;
     #elif defined(__EMSCRIPTEN__)
         return snk_js_is_osx();
