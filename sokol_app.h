@@ -1292,7 +1292,7 @@
         distribution.
 */
 #define SOKOL_APP_INCLUDED (1)
-#include <stddef.h> // size_t
+#include <stddef.h> /* size_t */
 #include <stdint.h>
 
 /* C89 bool support */
@@ -1316,7 +1316,7 @@ enum {
     SAPP_MAX_TOUCHPOINTS = 8,
     SAPP_MAX_MOUSEBUTTONS = 3,
     SAPP_MAX_KEYCODES = 512,
-    SAPP_MAX_ICONIMAGES = 8,
+    SAPP_MAX_ICONIMAGES = 8
 };
 
 /*
@@ -1485,7 +1485,7 @@ typedef enum sapp_keycode {
     SAPP_KEYCODE_RIGHT_CONTROL    = 345,
     SAPP_KEYCODE_RIGHT_ALT        = 346,
     SAPP_KEYCODE_RIGHT_SUPER      = 347,
-    SAPP_KEYCODE_MENU             = 348,
+    SAPP_KEYCODE_MENU             = 348
 } sapp_keycode;
 
 /*
@@ -1499,10 +1499,10 @@ typedef enum sapp_keycode {
     See https://developer.android.com/reference/android/view/MotionEvent#TOOL_TYPE_UNKNOWN
 */
 typedef enum sapp_android_tooltype {
-    SAPP_ANDROIDTOOLTYPE_UNKNOWN = 0,   // TOOL_TYPE_UNKNOWN
-    SAPP_ANDROIDTOOLTYPE_FINGER = 1,    // TOOL_TYPE_FINGER
-    SAPP_ANDROIDTOOLTYPE_STYLUS = 2,    // TOOL_TYPE_STYLUS
-    SAPP_ANDROIDTOOLTYPE_MOUSE = 3,     // TOOL_TYPE_MOUSE
+    SAPP_ANDROIDTOOLTYPE_UNKNOWN = 0,   /* TOOL_TYPE_UNKNOWN */
+    SAPP_ANDROIDTOOLTYPE_FINGER = 1,    /* TOOL_TYPE_FINGER */
+    SAPP_ANDROIDTOOLTYPE_STYLUS = 2,    /* TOOL_TYPE_STYLUS */
+    SAPP_ANDROIDTOOLTYPE_MOUSE = 3      /* TOOL_TYPE_MOUSE */
 } sapp_android_tooltype;
 
 /*
@@ -1518,7 +1518,7 @@ typedef struct sapp_touchpoint {
     uintptr_t identifier;
     float pos_x;
     float pos_y;
-    sapp_android_tooltype android_tooltype; // only valid on Android
+    sapp_android_tooltype android_tooltype; /* only valid on Android */
     bool changed;
 } sapp_touchpoint;
 
@@ -2043,10 +2043,10 @@ SOKOL_APP_API_DECL const void* sapp_android_get_native_activity(void);
 #error "SOKOL_MALLOC/CALLOC/FREE macros are no longer supported, please use sapp_desc.allocator to override memory allocation functions"
 #endif
 
-#include <stdlib.h> // malloc, free
-#include <string.h> // memset, strncmp
-#include <stddef.h> // size_t
-#include <math.h>   // roundf
+#include <stdlib.h> /* malloc, free */
+#include <string.h> /* memset, strncmp */
+#include <stddef.h> /* size_t */
+#include <math.h>   /* roundf */
 
 // helper macros
 #define _sapp_def(val, def) (((val) == 0) ? (def) : (val))

@@ -922,7 +922,7 @@
         distribution.
 */
 #define SOKOL_FETCH_INCLUDED (1)
-#include <stddef.h> // size_t
+#include <stddef.h> /* size_t */
 #include <stdint.h>
 
 /* C89 bool support */
@@ -969,6 +969,7 @@ typedef enum { false, true } bool;
 #define _SFETCH_LOGITEM_XMACRO(item,msg) SFETCH_LOGITEM_##item,
 typedef enum sfetch_log_item_t {
     _SFETCH_LOG_ITEMS
+    _SFETCH_LOG_ITEM_FORCE_U32 = 0x7FFFFFFF
 } sfetch_log_item_t;
 #undef _SFETCH_LOGITEM_XMACRO
 
@@ -980,12 +981,12 @@ typedef enum sfetch_log_item_t {
 */
 typedef struct sfetch_logger_t {
     void (*func)(
-        const char* tag,                // always "sfetch"
-        uint32_t log_level,             // 0=panic, 1=error, 2=warning, 3=info
-        uint32_t log_item_id,           // SFETCH_LOGITEM_*
-        const char* message_or_null,    // a message string, may be nullptr in release mode
-        uint32_t line_nr,               // line number in sokol_fetch.h
-        const char* filename_or_null,   // source filename, may be nullptr in release mode
+        const char* tag,                /* always "sfetch" */
+        uint32_t log_level,             /* 0=panic, 1=error, 2=warning, 3=info */
+        uint32_t log_item_id,           /* SFETCH_LOGITEM_* */
+        const char* message_or_null,    /* a message string, may be nullptr in release mode */
+        uint32_t line_nr,               /* line number in sokol_fetch.h */
+        const char* filename_or_null,   /* source filename, may be nullptr in release mode */
         void* user_data);
     void* user_data;
 } sfetch_logger_t;

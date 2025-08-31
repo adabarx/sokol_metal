@@ -131,7 +131,7 @@ SOKOL_TIME_API_DECL double stm_sec(uint64_t ticks);
 SOKOL_TIME_API_DECL double stm_ms(uint64_t ticks);
 SOKOL_TIME_API_DECL double stm_us(uint64_t ticks);
 SOKOL_TIME_API_DECL double stm_ns(uint64_t ticks);
-#endif // SOKOL_TIME_INCLUDED
+#endif /* SOKOL_TIME_INCLUDED */
 
 /*-- IMPLEMENTATION ----------------------------------------------------------*/
 #ifdef SOKOL_TIME_IMPL

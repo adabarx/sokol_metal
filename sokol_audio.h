@@ -478,7 +478,7 @@
         distribution.
 */
 #define SOKOL_AUDIO_INCLUDED (1)
-#include <stddef.h> // size_t
+#include <stddef.h> /* size_t */
 #include <stdint.h>
 
 /* C89 bool support */
@@ -538,6 +538,7 @@ typedef enum { false, true } bool;
 #define _SAUDIO_LOGITEM_XMACRO(item,msg) SAUDIO_LOGITEM_##item,
 typedef enum saudio_log_item {
     _SAUDIO_LOG_ITEMS
+    _SAUDIO_LOG_ITEM_FORCE_U32 = 0x7FFFFFFF
 } saudio_log_item;
 #undef _SAUDIO_LOGITEM_XMACRO
 
@@ -549,12 +550,12 @@ typedef enum saudio_log_item {
 */
 typedef struct saudio_logger {
     void (*func)(
-        const char* tag,                // always "saudio"
-        uint32_t log_level,             // 0=panic, 1=error, 2=warning, 3=info
-        uint32_t log_item_id,           // SAUDIO_LOGITEM_*
-        const char* message_or_null,    // a message string, may be nullptr in release mode
-        uint32_t line_nr,               // line number in sokol_audio.h
-        const char* filename_or_null,   // source filename, may be nullptr in release mode
+        const char* tag,                /* always "saudio" */
+        uint32_t log_level,             /* 0=panic, 1=error, 2=warning, 3=info */
+        uint32_t log_item_id,           /* SAUDIO_LOGITEM_* */
+        const char* message_or_null,    /* a message string, may be nullptr in release mode */
+        uint32_t line_nr,               /* line number in sokol_audio.h */
+        const char* filename_or_null,   /* source filename, may be nullptr in release mode */
         void* user_data);
     void* user_data;
 } saudio_logger;
@@ -574,16 +575,16 @@ typedef struct saudio_allocator {
 } saudio_allocator;
 
 typedef struct saudio_desc {
-    int sample_rate;        // requested sample rate
-    int num_channels;       // number of channels, default: 1 (mono)
-    int buffer_frames;      // number of frames in streaming buffer
-    int packet_frames;      // number of frames in a packet
-    int num_packets;        // number of packets in packet queue
-    void (*stream_cb)(float* buffer, int num_frames, int num_channels);  // optional streaming callback (no user data)
-    void (*stream_userdata_cb)(float* buffer, int num_frames, int num_channels, void* user_data); //... and with user data
-    void* user_data;        // optional user data argument for stream_userdata_cb
-    saudio_allocator allocator;     // optional allocation override functions
-    saudio_logger logger;           // optional logging function (default: NO LOGGING!)
+    int sample_rate;        /* requested sample rate */
+    int num_channels;       /* number of channels, default: 1 (mono) */
+    int buffer_frames;      /* number of frames in streaming buffer */
+    int packet_frames;      /* number of frames in a packet */
+    int num_packets;        /* number of packets in packet queue */
+    void (*stream_cb)(float* buffer, int num_frames, int num_channels);  /* optional streaming callback (no user data) */
+    void (*stream_userdata_cb)(float* buffer, int num_frames, int num_channels, void* user_data); /*... and with user data */
+    void* user_data;        /* optional user data argument for stream_userdata_cb */
+    saudio_allocator allocator;     /* optional allocation override functions */
+    saudio_logger logger;           /* optional logging function (default: NO LOGGING!) */
 } saudio_desc;
 
 /* setup sokol-audio */
@@ -624,9 +625,9 @@ SOKOL_AUDIO_API_DECL int saudio_push(const float* frames, int num_frames);
 #error "SOKOL_MALLOC/CALLOC/FREE macros are no longer supported, please use saudio_desc.allocator to override memory allocation functions"
 #endif
 
-#include <stdlib.h> // alloc, free
-#include <string.h> // memset, memcpy
-#include <stddef.h> // size_t
+#include <stdlib.h> /* alloc, free */
+#include <string.h> /* memset, memcpy */
+#include <stddef.h> /* size_t */
 
 #ifndef SOKOL_API_IMPL
     #define SOKOL_API_IMPL

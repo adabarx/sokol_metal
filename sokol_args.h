@@ -291,7 +291,7 @@
 */
 #define SOKOL_ARGS_INCLUDED (1)
 #include <stdint.h>
-#include <stddef.h> // size_t
+#include <stddef.h> /* size_t */
 
 /* C89 bool support */
 typedef enum { false, true } bool;
@@ -331,13 +331,13 @@ typedef struct sargs_desc {
     sargs_allocator allocator;
 } sargs_desc;
 
-// setup sokol-args
+/* setup sokol-args */
 SOKOL_ARGS_API_DECL void sargs_setup(const sargs_desc* desc);
-// shutdown sokol-args
+/* shutdown sokol-args */
 SOKOL_ARGS_API_DECL void sargs_shutdown(void);
-// true between sargs_setup() and sargs_shutdown()
+/* true between sargs_setup() and sargs_shutdown() */
 SOKOL_ARGS_API_DECL bool sargs_isvalid(void);
-// test if an argument exists by key name
+/* test if an argument exists by key name */
 SOKOL_ARGS_API_DECL bool sargs_exists(const char* key);
 // get value by key name, return empty string if key doesn't exist or an existing key has no value
 SOKOL_ARGS_API_DECL const char* sargs_value(const char* key);

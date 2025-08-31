@@ -1916,7 +1916,7 @@
         distribution.
 */
 #define SOKOL_GFX_INCLUDED (1)
-#include <stddef.h>     // size_t
+#include <stddef.h>     /* size_t */
 #include <stdint.h>
 
 /* C89 bool support */
@@ -1977,7 +1977,7 @@ typedef struct sg_range {
     size_t size;
 } sg_range;
 
-// disabling this for every includer isn't great, but the warnings are also quite pointless
+/* disabling this for every includer isn't great, but the warnings are also quite pointless */
 #if defined(_MSC_VER)
 #pragma warning(disable:4221)   // /W4 only: nonstandard extension used: 'x': cannot be initialized using address of automatic variable 'y'
 #pragma warning(disable:4204)   // VS2015: nonstandard extension used: non-constant aggregate initializer
@@ -1998,7 +1998,7 @@ enum {
     SG_MAX_UNIFORMBLOCK_BINDSLOTS = 8,
     SG_MAX_VIEW_BINDSLOTS = 28,
     SG_MAX_SAMPLER_BINDSLOTS = 16,
-    SG_MAX_TEXTURE_SAMPLER_PAIRS = 16,
+    SG_MAX_TEXTURE_SAMPLER_PAIRS = 16
 };
 
 /*
@@ -2022,7 +2022,7 @@ typedef enum sg_backend {
     SG_BACKEND_METAL_MACOS,
     SG_BACKEND_METAL_SIMULATOR,
     SG_BACKEND_WGPU,
-    SG_BACKEND_DUMMY,
+    SG_BACKEND_DUMMY
 } sg_backend;
 
 /*
@@ -2318,7 +2318,7 @@ typedef enum sg_sampler_type {
     SG_SAMPLERTYPE_NONFILTERING,
     SG_SAMPLERTYPE_COMPARISON,
     _SG_SAMPLERTYPE_NUM,
-    _SG_SAMPLERTYPE_FORCE_U32,
+    _SG_SAMPLERTYPE_FORCE_U32
 } sg_sampler_type;
 
 /*
@@ -3538,7 +3538,7 @@ typedef enum sg_shader_stage {
     SG_SHADERSTAGE_VERTEX,
     SG_SHADERSTAGE_FRAGMENT,
     SG_SHADERSTAGE_COMPUTE,
-    _SG_SHADERSTAGE_FORCE_U32 = 0x7FFFFFFF,
+    _SG_SHADERSTAGE_FORCE_U32 = 0x7FFFFFFF
 } sg_shader_stage;
 
 typedef struct sg_shader_function {
@@ -3554,7 +3554,7 @@ typedef enum sg_shader_attr_base_type {
     SG_SHADERATTRBASETYPE_FLOAT,
     SG_SHADERATTRBASETYPE_SINT,
     SG_SHADERATTRBASETYPE_UINT,
-    _SG_SHADERATTRBASETYPE_FORCE_U32 = 0x7FFFFFFF,
+    _SG_SHADERATTRBASETYPE_FORCE_U32 = 0x7FFFFFFF
 } sg_shader_attr_base_type;
 
 typedef struct sg_shader_vertex_attr {
@@ -4636,6 +4636,7 @@ typedef struct sg_frame_stats {
 #define _SG_LOGITEM_XMACRO(item,msg) SG_LOGITEM_##item,
 typedef enum sg_log_item {
     _SG_LOG_ITEMS
+    _SG_LOG_ITEM_FORCE_U32 = 0x7FFFFFFF
 } sg_log_item;
 #undef _SG_LOGITEM_XMACRO
 
@@ -5345,7 +5346,7 @@ enum {
     _SG_MAX_STORAGEBUFFER_BINDINGS_PER_STAGE = 8,
     _SG_MAX_STORAGEIMAGE_BINDINGS_PER_STAGE = 4,
     _SG_MAX_TEXTURE_BINDINGS_PER_STAGE = 16,
-    _SG_MAX_UNIFORMBLOCK_BINDINGS_PER_STAGE = 8,
+    _SG_MAX_UNIFORMBLOCK_BINDINGS_PER_STAGE = 8
 };
 
 // fixed-size string
